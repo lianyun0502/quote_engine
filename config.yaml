@@ -1,0 +1,56 @@
+Log:
+  dir: "log/"
+  link_name: "latest_log.log"
+  level: "debug"
+  report_caller: false
+  format: "2006-01-02 15:04:05.000000"
+  writer:
+    - name: "Info"
+      path: "%Y%m%d_%H%M.log"
+      max_age: 480
+      rotation_time: 2
+    - name: "Warn"
+      path: "warn/%Y%m%d_%H%M.log"
+      max_age: 480
+      rotation_time: 2
+  write_map:
+    panic: "Warn"
+    fatal: "Warn"
+    error: "Warn"
+    warn: "Warn"
+    info: "Info"
+    debug: "Info"
+
+Websocket:
+  # list of websocket clients
+    # exchange: exchange name
+    # url: websocket url
+    # subscribe: list of topics to subscribe
+    # reconn_time: reconnection time in seconds
+    # cmd: list of commands to send after connection
+    # publisher: list of topics to publish
+      # topic: topic name
+      # skey: secret key
+      # size: max size of the shm buffer
+  - exchange: "bybit"
+    url: "wss://stream.bybit.com/v5/public/spot"
+    subscribe: 
+      - "orderbook.50.BTCUSDT"
+      # - "publicTrade.BTCUSDT"
+      # - "tickers.BTCUSDT"
+    reconn_time: 10
+    cmd:
+      - method: "depth"
+        params:
+          symbol: "BTCUSDT"
+          limit: 5
+    publisher:
+      - topic: "orderbook.50.BTCUSDT"
+        skey: 177
+        size: 1073741 #1GB
+      - topic: "publicTrade.BTCUSDT"
+        skey: 277
+        size: 1073741 #1GB
+      - topic: "tickers.BTCUSDT"
+        skey: 377
+        size: 1073741 #1GB
