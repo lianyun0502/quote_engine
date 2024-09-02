@@ -33,11 +33,11 @@ Websocket:
       # skey: secret key
       # size: max size of the shm buffer
   - exchange: "bybit"
-    url: "wss://stream.bybit.com/v5/public/spot"
+    url: "wss://stream.bybit.com/v5/public/linear"
     subscribe: 
-      - "orderbook.50.BTCUSDT"
+      # - "orderbook.50.BTCUSDT"
       # - "publicTrade.BTCUSDT"
-      # - "tickers.BTCUSDT"
+      - "tickers.BTCUSDT"
     reconn_time: 10
     cmd:
       - method: "depth"

@@ -1,13 +1,13 @@
-package quote_engine
+package quote_engine_test
 
 import (
-
+	"testing"
 	"github.com/sirupsen/logrus"
+	. "github.com/lianyun0502/quote_engine"
 
 )
 
-
-func main () {
+func TestNewQuoteEngine(t *testing.T) {
 	config, err := LoadConfig("config.yaml")
 	if err != nil {
 		logrus.Println(err)
@@ -20,3 +20,5 @@ func main () {
 
 	<- quoteEngine.DoneSignal
 }
+
+
