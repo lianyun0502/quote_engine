@@ -11,6 +11,7 @@ import (
 	"github.com/valyala/fastjson"
 )
 
+// 將 bybit 的 symbol的綴詞 轉換成 topic，如果不符合任何規則，則回傳原本的 symbol
 func ByBitSymbolToTopic(symbol string) string {
 	switch {
 	case regexp.MustCompile("publicTrade").MatchString(symbol):
@@ -20,16 +21,18 @@ func ByBitSymbolToTopic(symbol string) string {
 	case regexp.MustCompile("tickers").MatchString(symbol):
 		return "tickers"
 	default:
-		return ""
+		return symbol
 	}
 }
 
 
-// life time is infinity
+// 給定 WsClientConfig 和 logger 生成一個 bybit 的 message handler 的 closure, 
 func WithBybitMessageHandler(wsCfg *WsClientConfig, logger *logrus.Logger) func([]byte) {
 	shm.Logger = logger
 
 	parser := data_stream.NewDataParser()
+
+	// map of publisher, key is topic, value is publisher
 	pubMap := make(map[string]*shm.Publisher)
 	for _, pub := range wsCfg.Publisher {
 		topic := ByBitSymbolToTopic(pub.Topic)
@@ -37,13 +40,13 @@ func WithBybitMessageHandler(wsCfg *WsClientConfig, logger *logrus.Logger) func(
 	}
 	
 	return func(rawData []byte) {
-		logger.Debugln(string(rawData))
-		logger.Info(time.Now().UnixNano() / int64(time.Millisecond))
+		logger.Debugf("rev time: %d", time.Now().UnixNano() / int64(time.Millisecond))
 		v := fastjson.MustParseBytes(rawData)
 		symbol := string(v.GetStringBytes("topic"))
 		topic := ByBitSymbolToTopic(symbol)
 		data, err := parser.Parse(rawData)
 		if err != nil {
+			logger.Debug(string(rawData))
 			logger.Error(err)
 			return
 		}

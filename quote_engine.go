@@ -59,8 +59,7 @@ func NewQuoteEngine(cfg *Config) *QuoteEngine {
 			engine.WsAgent = wsAgent
 			go func(){
 				// subscribe to topics everytime when connection is established
-				for {
-					<-wsAgent.Client.StartSignal
+				for _ = range wsAgent.Client.StartSignal {
 					subs, _ := json.Marshal(wsCfg.Subscribe)
 					wsAgent.Subscribe(string(subs))
 				}
