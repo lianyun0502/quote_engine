@@ -43,6 +43,10 @@ github.com/lianyun0502/shm v0.0.0-20240822013853-85eb2a903aea h1:zJ77FRCmjsjp7qn
 github.com/lianyun0502/shm v0.0.0-20240822013853-85eb2a903aea/go.mod h1:6ByiyUx/u01vXm8GJoeYCCa8ip/KiNfeqH8kD9TWPKw=
 github.com/lianyun0502/shm v0.0.0-20240902075118-51d30f9bbe33 h1:j+u4MXL4Pws4TnS7EVdh0s9m0ipuv+LPaqos7Qm5XVg=
 github.com/lianyun0502/shm v0.0.0-20240902075118-51d30f9bbe33/go.mod h1:1j4WFtL9FCaXWxYZlGu8CW4aYNtIA0RcXGKHGw6JUiA=
+github.com/lianyun0502/shm v0.0.0-20240903061653-83d60892953f h1:pwu16qsHLl6nR+cbpaBevqrqKkZlaeIFbD+0rULzEWQ=
+github.com/lianyun0502/shm v0.0.0-20240903061653-83d60892953f/go.mod h1:1j4WFtL9FCaXWxYZlGu8CW4aYNtIA0RcXGKHGw6JUiA=
+github.com/lianyun0502/shm v0.0.0-20240903063707-8c239421a85d h1:J/l0TPQUxxHGtyjGMRwGWdsnE4TqshcPOW7ii8mK0AY=
+github.com/lianyun0502/shm v0.0.0-20240903063707-8c239421a85d/go.mod h1:1j4WFtL9FCaXWxYZlGu8CW4aYNtIA0RcXGKHGw6JUiA=
 github.com/lxzan/gws v1.8.5 h1:6x+wW3EHtoGFNeCtZP1OVZ1IHrpZZzDaEjQGg1lUJqU=
 github.com/lxzan/gws v1.8.5/go.mod h1:FcGeRMB7HwGuTvMLR24ku0Zx0p6RXqeKASeMc4VYgi4=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=

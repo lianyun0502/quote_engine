@@ -1,3 +1,125 @@
+# Quote Engine
+
+行情引擎，透過 websocket 串流行情資料，並透過 share memory 來傳遞行情資料。
+
+
+## Index
+- [Introduction](#Introduction)
+- [Environment](#Environment)
+- [Installation](#Installation)
+- [Build](#Build)
+- [Execute](#Execute)
+- [Config 格式](#Config-格式)
+- [Config 說明](#Config-說明)
+
+
+## Environment
+* Go version: go version go1.22.6 linux/amd64
+* OS: Ubuntu Ubuntu 22.04.3 LTS
+
+## Installation
+
+there are two ways to install and use the package, one is to clone the repository and refer to local path and the other is to use the `go get` command set to `go.mod`.
+
+### Git clone the repository
+
+1. first clone the repository into your project directory
+
+    ```bash
+    git clone https://github.com/lianyun0502/quote_engine.git
+    ```
+
+    Your directory structure should look like this:
+
+    ```bash
+    your_project/
+    ├── build/
+    ├── quote_engine.go
+    └── go.mod
+    ```
+    
+2. replace the import refernce with the path of the repository in your project.
+
+    ```bash
+    go mod edit -replace=github.com/lianyun0502/quote_engine=../quote_engine
+    ```
+
+3. import the package in your project
+
+    ```Go
+    import (
+        "github.com/lianyun0502/quote_engine"
+    )
+    ```
+
+### Install the package use `go get`
+
+1. use the `go get` command to install the package
+
+    ```bash
+    go get github.com/lianyun0502/quote_engine
+    ```
+2. import the package in your project
+
+    ```Go
+    import (
+        "github.com/lianyun0502/quote_engine"
+    )
+    ```
+
+## Example
+
+```Go   
+package main
+
+import (
+	"github.com/sirupsen/logrus"
+	. "github.com/lianyun0502/quote_engine"
+)
+
+func main() {
+    // load config file
+	config, err := LoadConfig("config.yaml")
+	if err != nil {
+		logrus.Println(err)
+		return
+	} 
+
+    // create quote engine
+	quoteEngine := NewQuoteEngine(config)
+
+    // start the quote engine
+	quoteEngine.WsAgent.StartLoop()
+
+    // wait for done signal
+	<- quoteEngine.DoneSignal
+}
+```
+
+
+## Build
+
+1. entry the build directory
+
+    ```bash
+    cd build
+    ```
+2. build the project
+
+    ```bash
+    go build -o ./you_dir/quote_engine 
+    ```
+
+## Execute
+
+After building the project, put config file `config.yaml` in directory and you can execute the project by the following command.
+1. execute the project
+
+    ```bash
+    ./quote_engine
+    ```
+
+
 ## Config 格式
 
 ```yaml

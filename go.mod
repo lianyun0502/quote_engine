@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lianyun0502/exchange_conn v0.0.0-20240902035918-16a27929a8df
-	github.com/lianyun0502/shm v0.0.0-20240902075118-51d30f9bbe33
+	github.com/lianyun0502/shm v0.0.0-20240903063707-8c239421a85d
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/valyala/fastjson v1.6.4

@@ -26,25 +26,34 @@ func ByBitSymbolToTopic(symbol string) string {
 }
 
 
-// 給定 WsClientConfig 和 logger 生成一個 bybit 的 message handler 的 closure, 
-func WithBybitMessageHandler(wsCfg *WsClientConfig, logger *logrus.Logger) func([]byte) {
-	shm.Logger = logger
-
-	parser := data_stream.NewDataParser()
-
-	// map of publisher, key is topic, value is publisher
-	pubMap := make(map[string]*shm.Publisher)
-	for _, pub := range wsCfg.Publisher {
-		topic := ByBitSymbolToTopic(pub.Topic)
-		pubMap[topic] = shm.NewPublisher(pub.Skey, pub.Size)
-	}
-	
+func WithTradeHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte) {
+	logger.Debug("trade handler")
+	parser := data_stream.NewTrade()	
 	return func(rawData []byte) {
-		logger.Debugf("rev time: %d", time.Now().UnixNano() / int64(time.Millisecond))
-		v := fastjson.MustParseBytes(rawData)
-		symbol := string(v.GetStringBytes("topic"))
-		topic := ByBitSymbolToTopic(symbol)
-		data, err := parser.Parse(rawData)
+		data, err := parser.Update(rawData)
+		if err != nil {
+			logger.Debug(string(rawData))
+			logger.Error(err)
+			return
+		}
+		if data != nil {
+			for _, data := range data.Trades {
+				jsonData, err := json.Marshal(data)
+				if err != nil {
+					logger.Error(err)
+					return
+				}
+				pub.Write(jsonData)
+			}
+		}
+	}
+}
+
+func WithOrderBookHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte) {
+	logger.Debug("orderbook handler")
+	parser := data_stream.NewOrderBook()
+	return func(rawData []byte) {
+		data, err := parser.Update(rawData)
 		if err != nil {
 			logger.Debug(string(rawData))
 			logger.Error(err)
@@ -56,8 +65,60 @@ func WithBybitMessageHandler(wsCfg *WsClientConfig, logger *logrus.Logger) func(
 				logger.Error(err)
 				return
 			}
-			pubMap[topic].Write(jsonData)
+			pub.Write(jsonData)
 		}
-	
+	}
+}
+
+func WithTickerHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte) {
+	logger.Debug("ticker handler")
+	parser := data_stream.NewMarketData()
+	return func(rawData []byte) {
+		data, err := parser.Update(rawData)
+		if err != nil {
+			logger.Debug(string(rawData))
+			logger.Error(err)
+			return
+		}
+		if data != nil {
+			jsonData, err := json.Marshal(data)
+			if err != nil {
+				logger.Error(err)
+				return
+			}
+			pub.Write(jsonData)
+		}
+	}
+}
+
+
+// 給定 WsClientConfig 和 logger 生成一個 bybit 的 message handler 的 closure, 
+func WithBybitMessageHandler(wsCfg *WsClientConfig, logger *logrus.Logger) func([]byte) {
+	// map of publisher, key is topic, value is publisher
+	handleMap := make(map[string]func([]byte))
+	for _, pub := range wsCfg.Publisher {
+		topic := ByBitSymbolToTopic(pub.Topic)
+		switch topic{
+		case "publicTrade":
+			handleMap[topic] = WithTradeHandler(logger, shm.NewPublisher(pub.Skey, pub.Size))
+		case "orderbook":
+			handleMap[topic] = WithOrderBookHandler(logger, shm.NewPublisher(pub.Skey, pub.Size))
+		case "tickers":
+			handleMap[topic] = WithTickerHandler(logger, shm.NewPublisher(pub.Skey, pub.Size))
+		default:
+			logger.Errorf("can not gen handler for unknown topic: %s", topic)
+		}
+	}
+	return func(rawData []byte) {
+		logger.Debugf("rev time: %d", time.Now().UnixNano() / int64(time.Millisecond))
+		v := fastjson.MustParseBytes(rawData)
+		symbol := string(v.GetStringBytes("topic"))
+		topic := ByBitSymbolToTopic(symbol)
+		if handler, ok := handleMap[topic]; ok {
+			logger.Debugf("rev topic: %s", topic)
+			handler(rawData)
+		}else{
+			logger.Errorf("unknown topic: %s", topic)
+		}
 	}
 }

@@ -22,21 +22,11 @@ Log:
     debug: "Info"
 
 Websocket:
-  # list of websocket clients
-    # exchange: exchange name
-    # url: websocket url
-    # subscribe: list of topics to subscribe
-    # reconn_time: reconnection time in seconds
-    # cmd: list of commands to send after connection
-    # publisher: list of topics to publish
-      # topic: topic name
-      # skey: secret key
-      # size: max size of the shm buffer
   - exchange: "bybit"
     url: "wss://stream.bybit.com/v5/public/linear"
     subscribe: 
-      # - "orderbook.50.BTCUSDT"
-      # - "publicTrade.BTCUSDT"
+      - "orderbook.50.BTCUSDT"
+      - "publicTrade.BTCUSDT"
       - "tickers.BTCUSDT"
     reconn_time: 10
     cmd:

@@ -88,7 +88,7 @@ func InitLogger(logger *logrus.Logger, config *Config) (err error){
 	for _, writer := range config.Log.Writers {
 		writers[writer.Name], _ = rotatelogs.New(
 			config.Log.Dir + writer.Path,
-			rotatelogs.WithLinkName(config.Log.LinkName),
+			rotatelogs.WithLinkName(config.Log.Dir + config.Log.LinkName),
 			rotatelogs.WithMaxAge(time.Duration(writer.MaxAge)*24*time.Hour),
 			rotatelogs.WithRotationTime(time.Duration(writer.RotationTime)*time.Hour),
 		)
