@@ -38,6 +38,7 @@ func WithTradeHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte) {
 		}
 		if data != nil {
 			for _, data := range data.Trades {
+				logger.Debugf("exch send time: %d", data.Time)
 				jsonData, err := json.Marshal(data)
 				if err != nil {
 					logger.Error(err)
@@ -60,6 +61,7 @@ func WithOrderBookHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte
 			return
 		}
 		if data != nil {
+			logger.Debugf("exch send time: %d", data.Time)
 			jsonData, err := json.Marshal(data)
 			if err != nil {
 				logger.Error(err)
@@ -81,6 +83,7 @@ func WithTickerHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte) {
 			return
 		}
 		if data != nil {
+			logger.Debugf("exch send time: %d", data.Time)
 			jsonData, err := json.Marshal(data)
 			if err != nil {
 				logger.Error(err)
@@ -110,7 +113,7 @@ func WithBybitMessageHandler(wsCfg *WsClientConfig, logger *logrus.Logger) func(
 		}
 	}
 	return func(rawData []byte) {
-		logger.Debugf("rev time: %d", time.Now().UnixNano() / int64(time.Millisecond))
+		logger.Debugf("rev time: %d", time.Now().UnixNano()/int64(time.Millisecond))
 		v := fastjson.MustParseBytes(rawData)
 		symbol := string(v.GetStringBytes("topic"))
 		topic := ByBitSymbolToTopic(symbol)
