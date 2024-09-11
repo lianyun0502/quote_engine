@@ -11,6 +11,10 @@ import (
 	"github.com/valyala/fastjson"
 )
 
+type IWriter interface {
+	Write([]byte)
+}
+
 // 將 bybit 的 symbol的綴詞 轉換成 topic，如果不符合任何規則，則回傳原本的 symbol
 func ByBitSymbolToTopic(symbol string) string {
 	switch {
@@ -26,7 +30,7 @@ func ByBitSymbolToTopic(symbol string) string {
 }
 
 
-func WithTradeHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte) {
+func WithTradeHandler(logger *logrus.Logger, writer IWriter) func([]byte) {
 	logger.Debug("trade handler")
 	parser := data_stream.NewTrade()	
 	return func(rawData []byte) {
@@ -44,13 +48,13 @@ func WithTradeHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte) {
 					logger.Error(err)
 					return
 				}
-				pub.Write(jsonData)
+				writer.Write(jsonData)
 			}
 		}
 	}
 }
 
-func WithOrderBookHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte) {
+func WithOrderBookHandler(logger *logrus.Logger, writer IWriter) func([]byte) {
 	logger.Debug("orderbook handler")
 	parser := data_stream.NewOrderBook()
 	return func(rawData []byte) {
@@ -67,12 +71,12 @@ func WithOrderBookHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte
 				logger.Error(err)
 				return
 			}
-			pub.Write(jsonData)
+			writer.Write(jsonData)
 		}
 	}
 }
 
-func WithTickerHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte) {
+func WithTickerHandler(logger *logrus.Logger, writer IWriter) func([]byte) {
 	logger.Debug("ticker handler")
 	parser := data_stream.NewMarketData()
 	return func(rawData []byte) {
@@ -89,31 +93,32 @@ func WithTickerHandler(logger *logrus.Logger, pub *shm.Publisher) func([]byte) {
 				logger.Error(err)
 				return
 			}
-			pub.Write(jsonData)
+			writer.Write(jsonData)
 		}
 	}
 }
 
 
 // 給定 WsClientConfig 和 logger 生成一個 bybit 的 message handler 的 closure, 
-func WithBybitMessageHandler(wsCfg *WsClientConfig, logger *logrus.Logger) func([]byte) {
+func WithBybitMessageHandler(wsCfg *WsClientConfig, logger *logrus.Logger, pub_map map[string]*shm.Publisher) func([]byte) {
 	// map of publisher, key is topic, value is publisher
 	handleMap := make(map[string]func([]byte))
 	for _, pub := range wsCfg.Publisher {
 		topic := ByBitSymbolToTopic(pub.Topic)
 		switch topic{
 		case "publicTrade":
-			handleMap[topic] = WithTradeHandler(logger, shm.NewPublisher(pub.Skey, pub.Size))
+			handleMap[topic] = WithTradeHandler(logger, pub_map[topic])
 		case "orderbook":
-			handleMap[topic] = WithOrderBookHandler(logger, shm.NewPublisher(pub.Skey, pub.Size))
+			handleMap[topic] = WithOrderBookHandler(logger, pub_map[topic])
 		case "tickers":
-			handleMap[topic] = WithTickerHandler(logger, shm.NewPublisher(pub.Skey, pub.Size))
+			handleMap[topic] = WithTickerHandler(logger, pub_map[topic])
 		default:
 			logger.Errorf("can not gen handler for unknown topic: %s", topic)
 		}
 	}
 	return func(rawData []byte) {
 		logger.Debugf("rev time: %d", time.Now().UnixNano()/int64(time.Millisecond))
+		// logger.Debug(string(rawData))
 		v := fastjson.MustParseBytes(rawData)
 		symbol := string(v.GetStringBytes("topic"))
 		topic := ByBitSymbolToTopic(symbol)

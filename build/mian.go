@@ -14,7 +14,7 @@ func main() {
 	
 	quoteEngine := NewQuoteEngine(config)
 
-	quoteEngine.WsAgent.StartLoop()
+	// quoteEngine.WsAgent.StartLoop()
 
 	<- quoteEngine.DoneSignal
 }
