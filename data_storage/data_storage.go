@@ -52,16 +52,6 @@ func NewSubscriberMap(ctx context.Context, configs []configs.PublisherConfig, lo
 			}
 			sub_map[pub.Topic] = shm.NewSubscriber(pub.Skey, pub.Size)
 		}
-		for topic, sub := range sub_map {
-			switch topic {
-			case "orderbook":
-				sub.Handle = WithOrderbookTxtHandle(ctx, logger)
-			case "tickers":
-				sub.Handle = WithTickerTxtHandle(ctx, logger)
-			}
-			go sub.ReadLoop()
-
-		}
 	return sub_map
 }
 

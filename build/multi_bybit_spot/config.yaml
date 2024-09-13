@@ -179,9 +179,11 @@ Websocket:
       - topic: "orderbook"
         skey: 168
         size: 1073741 #1GB
+        store: true
       # - topic: "publicTrade"
       #   skey: 287
       #   size: 1073741 #1GB
       - topic: "tickers"
         skey: 368
         size: 1073741 #1GB
+        store: true

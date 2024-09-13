@@ -9,6 +9,7 @@ import (
 )
 
 func WithOrderbookTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte) {
+	log.Info("create orderbook file")
 	writer, err := rotatefile.New(
 		"data/orderbook_%Y%m%d%H%M.data",
 		rotatefile.WithMaxAge(time.Duration(5)*24*time.Hour),
@@ -35,6 +36,7 @@ func WithOrderbookTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte
 
 
 func WithTickerTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte) {
+	log.Info("create ticker file")
 	writer, err := rotatefile.New(
 		"data/ticker_%Y%m%d%H%M.data",
 		rotatefile.WithMaxAge(time.Duration(5)*24*time.Hour),
