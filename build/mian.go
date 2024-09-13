@@ -1,21 +1,27 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
+	"context"
+
 	. "github.com/lianyun0502/quote_engine"
+	"github.com/lianyun0502/quote_engine/configs"
+	"github.com/lianyun0502/quote_engine/data_storage"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	config, err := LoadConfig("config.yaml")
+	config, err := configs.LoadConfig("config.yaml")
 	if err != nil {
 		logrus.Println(err)
 		return
-	} 
-	
-	quoteEngine := NewQuoteEngine(config)
+	}
+	logger := logrus.New()
+	InitLogger(logger, &config.Log)
+	ctx, cancel := context.WithCancel(context.Background())
+	datastorage.NewDataStorage(ctx, config, logger)
+	quoteEngine := NewQuoteEngine(config, logger)
 
-	// quoteEngine.WsAgent.StartLoop()
-
-	<- quoteEngine.DoneSignal
+	WaitForClose(quoteEngine.Logger, ctx)
+	cancel()
 }
 

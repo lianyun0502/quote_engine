@@ -23,7 +23,7 @@ Log:
 
 Websocket:
   - exchange: "bybit"
-    url: "wss://stream.bybit.com/v5/public/linear"
+    url: "wss://stream.bybit.com/v5/public/spot"
     subscribe: 
       - "orderbook.1.MKRUSDT"
       - "orderbook.1.PEOPLEUSDT"
@@ -47,7 +47,7 @@ Websocket:
       - "orderbook.1.SOLUSDT"
       - "orderbook.1.BOMEUSDT"
       - "orderbook.1.ATOMUSDT"
-      - "orderbook.1.1000BONKUSDT"
+      - "orderbook.1.BONKUSDT"
       - "orderbook.1.ADAUSDT"
       - "orderbook.1.ARUSDT"
       - "orderbook.1.ARBUSDT"
@@ -71,10 +71,10 @@ Websocket:
       - "orderbook.1.LINKUSDT"
       - "orderbook.1.FILUSDT"
       - "orderbook.1.OPUSDT"
-      - "orderbook.1.1000PEPEUSDT"
-      - "orderbook.1.SHIB1000USDT"
+      - "orderbook.1.PEPEUSDT"
+      - "orderbook.1.SHIBUSDT"
       - "orderbook.1.BTCUSDT"
-      - "orderbook.1.1000FLOKIUSDT"
+      - "orderbook.1.FLOKIUSDT"
       - "orderbook.1.APTUSDT"
       - "orderbook.1.AAVEUSDT"
       - "orderbook.1.ORDIUSDT"
@@ -119,7 +119,7 @@ Websocket:
       - "tickers.SOLUSDT"
       - "tickers.BOMEUSDT"
       - "tickers.ATOMUSDT"
-      - "tickers.1000BONKUSDT"
+      - "tickers.BONKUSDT"
       - "tickers.ADAUSDT"
       - "tickers.ARUSDT"
       - "tickers.ARBUSDT"
@@ -143,10 +143,10 @@ Websocket:
       - "tickers.LINKUSDT"
       - "tickers.FILUSDT"
       - "tickers.OPUSDT"
-      - "tickers.1000PEPEUSDT"
-      - "tickers.SHIB1000USDT"
+      - "tickers.PEPEUSDT"
+      - "tickers.SHIBUSDT"
       - "tickers.BTCUSDT"
-      - "tickers.1000FLOKIUSDT"
+      - "tickers.FLOKIUSDT"
       - "tickers.APTUSDT"
       - "tickers.AAVEUSDT"
       - "tickers.ORDIUSDT"
@@ -177,11 +177,12 @@ Websocket:
           limit: 5
     publisher:
       - topic: "orderbook"
-        skey: 188
+        skey: 158
         size: 1073741 #1GB
-      # - topic: "publicTrade.BTCUSDT"
+        store: true
+      # - topic: "publicTrade"
       #   skey: 287
       #   size: 1073741 #1GB
       - topic: "tickers"
-        skey: 388
+        skey: 358
         size: 1073741 #1GB

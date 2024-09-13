@@ -8,6 +8,7 @@ import (
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/lianyun0502/exchange_conn/v1"
+	"github.com/lianyun0502/quote_engine/configs"
 
 	// "github.com/lianyun0502/exchange_conn/v1/binance_conn"
 	"github.com/lianyun0502/exchange_conn/v1/bybit_conn"
@@ -29,25 +30,24 @@ type QuoteEngine struct {
 	Logger *logrus.Logger
 	WsAgent map[string]IWsAgent
 
-	DoneSignal chan *struct{}
+	DoneSignal chan struct{}
 }
 
 
 
-func NewQuoteEngine(cfg *Config) *QuoteEngine {
+func NewQuoteEngine(cfg *configs.Config, logger *logrus.Logger) *QuoteEngine {
 	// var wsAgent IWsAgent
-	logger := logrus.New()
-	InitLogger(logger, &cfg.Log)
 	errHandle := WithErrorHandler(logger)
 	engine := &QuoteEngine{
 		Logger: logger,
-		DoneSignal: make(chan *struct{}),
+		DoneSignal: make(chan struct{}),
 		WsAgent: make(map[string]IWsAgent),
 	}
 
 	for _, wsCfg := range cfg.Websocket {
-		pub_map := NewPublisherMap(wsCfg.Publisher)
-		sub_map := NewSubscribeMap(wsCfg.Subscribe)
+		publisher_map := NewPublisherMap(wsCfg.Publisher)
+		subscribe_map := NewSubscribeMap(wsCfg.Subscribe)
+	
 		switch strings.ToUpper(wsCfg.Exchange) {
 		// case "BINANCE":
 		// 	msgHandle := WithBinanceMessageHandler(&wsCfg, logger)
@@ -56,9 +56,9 @@ func NewQuoteEngine(cfg *Config) *QuoteEngine {
 		// 	wsAgent.Client.Logger = logger
 		// 	engine.WsAgent = wsAgent
 		case "BYBIT":
-			for k, v := range sub_map {
+			for k, v := range subscribe_map {
 				logger.Infof("ws agent for %s started", k)
-				msgHandle := WithBybitMessageHandler(&wsCfg, logger, pub_map)
+				msgHandle := WithBybitMessageHandler(&wsCfg, logger, publisher_map)
 				wsAgent := exchange_conn.NewWebSocketAgent(bybit_conn.NewWsClient(msgHandle, errHandle, wsCfg.ReconnTime))
 				wsAgent.Connect(wsCfg.Url)
 				wsAgent.Client.Logger = logger
@@ -87,7 +87,7 @@ func WithErrorHandler(logger *logrus.Logger) func(error) {
 
 
 
-func InitLogger(logger *logrus.Logger, config *LogConfig) (err error){
+func InitLogger(logger *logrus.Logger, config *configs.LogConfig) (err error){
 	logger.SetReportCaller(config.ReportCaller)
 	writers := make(map[string]*rotatelogs.RotateLogs)
 	logger.Info(common.PrettyPrint(config))
@@ -138,7 +138,7 @@ func NewSubscribeMap(subscribes []string) map[string][]string {
 
 }
 
-func NewPublisherMap(publishers []PublisherConfig) map[string]*shm.Publisher {
+func NewPublisherMap(publishers []configs.PublisherConfig) map[string]*shm.Publisher {
 	pub_map := make(map[string]*shm.Publisher)	
 		for _, pub := range publishers {
 			pub_map[pub.Topic] = shm.NewPublisher(pub.Skey, pub.Size)
@@ -146,7 +146,7 @@ func NewPublisherMap(publishers []PublisherConfig) map[string]*shm.Publisher {
 	return pub_map
 }
 
-func NewSubscriberMap(publishers []PublisherConfig) map[string]*shm.Subscriber{
+func NewSubscriberMap(publishers []configs.PublisherConfig) map[string]*shm.Subscriber{
 	sub_map := make(map[string]*shm.Subscriber)	
 		for _, pub := range publishers {
 			sub_map[pub.Topic] = shm.NewSubscriber(pub.Skey, pub.Size)

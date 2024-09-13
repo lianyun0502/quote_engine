@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/lianyun0502/quote_engine/configs"
 	"github.com/lianyun0502/exchange_conn/v1/bybit_conn/data_stream"
 	"github.com/lianyun0502/shm"
 	"github.com/sirupsen/logrus"
@@ -100,7 +101,7 @@ func WithTickerHandler(logger *logrus.Logger, writer IWriter) func([]byte) {
 
 
 // 給定 WsClientConfig 和 logger 生成一個 bybit 的 message handler 的 closure, 
-func WithBybitMessageHandler(wsCfg *WsClientConfig, logger *logrus.Logger, pub_map map[string]*shm.Publisher) func([]byte) {
+func WithBybitMessageHandler(wsCfg *configs.WsClientConfig, logger *logrus.Logger, pub_map map[string]*shm.Publisher) func([]byte) {
 	// map of publisher, key is topic, value is publisher
 	handleMap := make(map[string]func([]byte))
 	for _, pub := range wsCfg.Publisher {

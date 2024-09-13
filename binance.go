@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"fmt"
 
+	"github.com/lianyun0502/quote_engine/configs"
 	"github.com/lianyun0502/exchange_conn/v1/binance_conn/data_stream"
 	"github.com/lianyun0502/shm"
 	"github.com/sirupsen/logrus"
@@ -28,7 +29,7 @@ func SymbolToTopic(symbol string) string {
 }
 
 // life time is infinity
-func WithBinanceMessageHandler(wsCfg *WsClientConfig, logger *logrus.Logger) func([]byte) {
+func WithBinanceMessageHandler(wsCfg *configs.WsClientConfig, logger *logrus.Logger) func([]byte) {
 	var parse func([]byte)(any, error)
 
 	parse = GetBinanceParser
