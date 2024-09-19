@@ -19,35 +19,33 @@ import (
 )
 
 type IWsAgent interface {
-	Subscribe (string)
-	Send ([]byte) error
-	Connect (string) (*http.Response, error)
-	StartLoop ()
-	Stop () error
+	Subscribe(string)
+	Send([]byte) error
+	Connect(string) (*http.Response, error)
+	StartLoop()
+	Stop() error
 }
 
 type QuoteEngine struct {
-	Logger *logrus.Logger
+	Logger  *logrus.Logger
 	WsAgent map[string]IWsAgent
 
 	DoneSignal chan struct{}
 }
 
-
-
 func NewQuoteEngine(cfg *configs.Config, logger *logrus.Logger) *QuoteEngine {
 	// var wsAgent IWsAgent
 	errHandle := WithErrorHandler(logger)
 	engine := &QuoteEngine{
-		Logger: logger,
+		Logger:     logger,
 		DoneSignal: make(chan struct{}),
-		WsAgent: make(map[string]IWsAgent),
+		WsAgent:    make(map[string]IWsAgent),
 	}
 
 	for _, wsCfg := range cfg.Websocket {
 		publisher_map := NewPublisherMap(wsCfg.Publisher)
 		subscribe_map := NewSubscribeMap(wsCfg.Subscribe)
-	
+
 		switch strings.ToUpper(wsCfg.Exchange) {
 		// case "BINANCE":
 		// 	msgHandle := WithBinanceMessageHandler(&wsCfg, logger)
@@ -63,7 +61,7 @@ func NewQuoteEngine(cfg *configs.Config, logger *logrus.Logger) *QuoteEngine {
 				wsAgent.Connect(wsCfg.Url)
 				wsAgent.Client.Logger = logger
 				engine.WsAgent[k] = wsAgent
-				go func(){
+				go func() {
 					// subscribe to topics everytime when connection is established
 					for _ = range wsAgent.Client.StartSignal {
 						subs, _ := json.Marshal(v)
@@ -71,13 +69,12 @@ func NewQuoteEngine(cfg *configs.Config, logger *logrus.Logger) *QuoteEngine {
 					}
 				}()
 				go wsAgent.StartLoop()
-				
+
 			}
 		}
 	}
 	return engine
 }
-
 
 func WithErrorHandler(logger *logrus.Logger) func(error) {
 	return func(err error) {
@@ -85,9 +82,7 @@ func WithErrorHandler(logger *logrus.Logger) func(error) {
 	}
 }
 
-
-
-func InitLogger(logger *logrus.Logger, config *configs.LogConfig) (err error){
+func InitLogger(logger *logrus.Logger, config *configs.LogConfig) (err error) {
 	logger.SetReportCaller(config.ReportCaller)
 	writers := make(map[string]*rotatelogs.RotateLogs)
 	logger.Info(common.PrettyPrint(config))
@@ -95,8 +90,8 @@ func InitLogger(logger *logrus.Logger, config *configs.LogConfig) (err error){
 
 	for _, writer := range config.Writers {
 		writers[writer.Name], _ = rotatelogs.New(
-			config.Dir + writer.Path,
-			rotatelogs.WithLinkName(config.Dir + config.LinkName),
+			config.Dir+writer.Path,
+			rotatelogs.WithLinkName(config.Dir+config.LinkName),
 			rotatelogs.WithMaxAge(time.Duration(writer.MaxAge)*24*time.Hour),
 			rotatelogs.WithRotationTime(time.Duration(writer.RotationTime)*time.Hour),
 		)
@@ -125,31 +120,31 @@ func InitLogger(logger *logrus.Logger, config *configs.LogConfig) (err error){
 
 func NewSubscribeMap(subscribes []string) map[string][]string {
 	sub_map := make(map[string][]string)
-		for _, sub := range subscribes {
-			symbols := strings.Split(sub, ".")
-			symbol := symbols[len(symbols)-1]
-			if _, ok := sub_map[symbol]; !ok {
-				sub_map[symbol] = []string{sub}
-			}else{
-				sub_map[symbol] = append(sub_map[symbol], sub)
-			}
+	for _, sub := range subscribes {
+		symbols := strings.Split(sub, ".")
+		symbol := symbols[len(symbols)-1]
+		if _, ok := sub_map[symbol]; !ok {
+			sub_map[symbol] = []string{sub}
+		} else {
+			sub_map[symbol] = append(sub_map[symbol], sub)
 		}
+	}
 	return sub_map
 
 }
 
 func NewPublisherMap(publishers []configs.PublisherConfig) map[string]*shm.Publisher {
-	pub_map := make(map[string]*shm.Publisher)	
-		for _, pub := range publishers {
-			pub_map[pub.Topic] = shm.NewPublisher(pub.Skey, pub.Size)
-		}
+	pub_map := make(map[string]*shm.Publisher)
+	for _, pub := range publishers {
+		pub_map[pub.Topic] = shm.NewPublisher(pub.Skey, pub.Size)
+	}
 	return pub_map
 }
 
-func NewSubscriberMap(publishers []configs.PublisherConfig) map[string]*shm.Subscriber{
-	sub_map := make(map[string]*shm.Subscriber)	
-		for _, pub := range publishers {
-			sub_map[pub.Topic] = shm.NewSubscriber(pub.Skey, pub.Size)
-		}
+func NewSubscriberMap(publishers []configs.PublisherConfig) map[string]*shm.Subscriber {
+	sub_map := make(map[string]*shm.Subscriber)
+	for _, pub := range publishers {
+		sub_map[pub.Topic] = shm.NewSubscriber(pub.Skey, pub.Size)
+	}
 	return sub_map
 }

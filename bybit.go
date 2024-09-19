@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/lianyun0502/quote_engine/configs"
 	"github.com/lianyun0502/exchange_conn/v1/bybit_conn/data_stream"
+	"github.com/lianyun0502/quote_engine/configs"
 	"github.com/lianyun0502/shm"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fastjson"
@@ -30,10 +30,9 @@ func ByBitSymbolToTopic(symbol string) string {
 	}
 }
 
-
 func WithTradeHandler(logger *logrus.Logger, writer IWriter) func([]byte) {
 	logger.Debug("trade handler")
-	parser := data_stream.NewTrade()	
+	parser := data_stream.NewTrade()
 	return func(rawData []byte) {
 		data, err := parser.Update(rawData)
 		if err != nil {
@@ -57,7 +56,7 @@ func WithTradeHandler(logger *logrus.Logger, writer IWriter) func([]byte) {
 
 func WithOrderBookHandler(logger *logrus.Logger, writer IWriter) func([]byte) {
 	logger.Debug("orderbook handler")
-	parser := data_stream.NewOrderBook()
+	parser := data_stream.NewOrderBook(10)
 	return func(rawData []byte) {
 		data, err := parser.Update(rawData)
 		if err != nil {
@@ -99,14 +98,13 @@ func WithTickerHandler(logger *logrus.Logger, writer IWriter) func([]byte) {
 	}
 }
 
-
-// 給定 WsClientConfig 和 logger 生成一個 bybit 的 message handler 的 closure, 
+// 給定 WsClientConfig 和 logger 生成一個 bybit 的 message handler 的 closure,
 func WithBybitMessageHandler(wsCfg *configs.WsClientConfig, logger *logrus.Logger, pub_map map[string]*shm.Publisher) func([]byte) {
 	// map of publisher, key is topic, value is publisher
 	handleMap := make(map[string]func([]byte))
 	for _, pub := range wsCfg.Publisher {
 		topic := ByBitSymbolToTopic(pub.Topic)
-		switch topic{
+		switch topic {
 		case "publicTrade":
 			handleMap[topic] = WithTradeHandler(logger, pub_map[topic])
 		case "orderbook":
@@ -126,7 +124,7 @@ func WithBybitMessageHandler(wsCfg *configs.WsClientConfig, logger *logrus.Logge
 		if handler, ok := handleMap[topic]; ok {
 			logger.Debugf("rev topic: %s", topic)
 			handler(rawData)
-		}else{
+		} else {
 			logger.Errorf("unknown topic: %s", topic)
 		}
 	}

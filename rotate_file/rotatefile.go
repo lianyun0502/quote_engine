@@ -87,7 +87,7 @@ func New(p string, options ...Option) (*RotateFile, error) {
 		maxAge:        maxAge,
 		pattern:       pattern,
 		rotationTime:  rotationTime,
-		rotationSize: rotationSize,
+		rotationSize:  rotationSize,
 		rotationCount: rotationCount,
 		forceNewFile:  forceNewFile,
 	}, nil

@@ -2,25 +2,24 @@ package datastorage
 
 import (
 	"context"
-	"time"
-
 	rotatefile "github.com/lianyun0502/quote_engine/rotate_file"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 func WithOrderbookTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte) {
 	log.Info("create orderbook file")
 	writer, err := rotatefile.New(
 		"data/orderbook_%Y%m%d%H%M.data",
-		rotatefile.WithMaxAge(time.Duration(5)*24*time.Hour),
-		rotatefile.WithRotationTime(time.Duration(2)*time.Hour),
+		rotatefile.WithMaxAge(time.Duration(24*7)*time.Hour),
+		rotatefile.WithRotationTime(time.Duration(1)*time.Hour),
 	)
-    if err != nil {
+	if err != nil {
 		writer.Close()
-        panic(err)
-    }
+		panic(err)
+	}
 	go func() {
-		<- ctx.Done()
+		<-ctx.Done()
 		log.Info("close orderbook file")
 		writer.Close()
 	}()
@@ -34,20 +33,19 @@ func WithOrderbookTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte
 
 }
 
-
 func WithTickerTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte) {
 	log.Info("create ticker file")
 	writer, err := rotatefile.New(
 		"data/ticker_%Y%m%d%H%M.data",
-		rotatefile.WithMaxAge(time.Duration(5)*24*time.Hour),
-		rotatefile.WithRotationTime(time.Duration(2)*time.Hour),
+		rotatefile.WithMaxAge(time.Duration(24*7)*time.Hour),
+		rotatefile.WithRotationTime(time.Duration(1)*time.Hour),
 	)
 	if err != nil {
 		writer.Close()
 		panic(err)
 	}
 	go func() {
-		<- ctx.Done()
+		<-ctx.Done()
 		log.Info("close ticker file")
 		writer.Close()
 	}()

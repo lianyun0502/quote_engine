@@ -18,8 +18,8 @@ func main() {
 	logger := logrus.New()
 	InitLogger(logger, &config.Log)
 	ctx, cancel := context.WithCancel(context.Background())
-	datastorage.NewDataStorage(ctx, config, logger)
 	quoteEngine := NewQuoteEngine(config, logger)
+	datastorage.NewDataStorage(ctx, config, logger)
 
 	WaitForClose(quoteEngine.Logger, ctx)
 	cancel()

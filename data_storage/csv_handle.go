@@ -13,17 +13,17 @@ import (
 
 func WithOrderbookCsvHandle(log *logrus.Logger) func([]byte) {
 	csvFile, err := os.Create("orderbook.csv")
-    if err != nil {
+	if err != nil {
 		csvFile.Close()
-        panic(err)
-    }
+		panic(err)
+	}
 	writer := csv.NewWriter(csvFile)
 	writer.Write([]string{"topic", "localtime", "symbol", "time", "ask1", "vol1", "bid1", "vol1"})
 	return func(rawData []byte) {
 		ob := new(exchange_conn.OrderBookStream)
 		json.Unmarshal(rawData, ob)
 		data := []string{
-			ob.Topic, 
+			ob.Topic,
 			strconv.FormatInt(time.Now().UnixNano(), 10),
 			ob.Symbol,
 			strconv.FormatInt(ob.Time, 10),
@@ -41,7 +41,6 @@ func WithOrderbookCsvHandle(log *logrus.Logger) func([]byte) {
 	}
 
 }
-
 
 func WithTickerCsvHandle(log *logrus.Logger) func([]byte) {
 	csvFile, err := os.Create("ticker.csv")

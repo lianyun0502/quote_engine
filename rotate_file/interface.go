@@ -88,7 +88,6 @@ type IOption interface {
 	Value() interface{}
 }
 
-
 type Interface interface {
 	Name() string
 	Value() interface{}
