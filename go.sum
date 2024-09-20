@@ -35,6 +35,8 @@ github.com/lestrrat-go/strftime v1.1.0 h1:gMESpZy44/4pXLO/m+sL0yBd1W6LjgjrrD4a68
 github.com/lestrrat-go/strftime v1.1.0/go.mod h1:uzeIB52CeUJenCo1syghlugshMysrqUT51HlxphXVeI=
 github.com/lianyun0502/exchange_conn v0.0.0-20240918021058-f5a178eb947d h1:Sqejcbd+fT62T7z3kgWQtgiMzdbLnq0OeJfheTRLnVY=
 github.com/lianyun0502/exchange_conn v0.0.0-20240918021058-f5a178eb947d/go.mod h1:nmOmVlVCq9Tg+Nh6dJPrq6SpH7068zI+w9CjVbWgOMA=
+github.com/lianyun0502/exchange_conn v0.0.0-20240919045924-08163109a426 h1:rW0+4jU3ts23ilBjklq4jn3VCmZj9rFn5Bs8EU1sko8=
+github.com/lianyun0502/exchange_conn v0.0.0-20240919045924-08163109a426/go.mod h1:nmOmVlVCq9Tg+Nh6dJPrq6SpH7068zI+w9CjVbWgOMA=
 github.com/lianyun0502/shm v0.0.0-20240911090444-102e817aa599 h1:JKwwYlx00yz/4/CVqhiJLANUlWsKOq7LgCVAKAGptwM=
 github.com/lianyun0502/shm v0.0.0-20240911090444-102e817aa599/go.mod h1:ouZ6hCLSe6P3mNZZItgxu8PWtbA8Bq/Zjr1l8o4W38k=
 github.com/lxzan/gws v1.8.5 h1:6x+wW3EHtoGFNeCtZP1OVZ1IHrpZZzDaEjQGg1lUJqU=
