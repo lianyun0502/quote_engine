@@ -6,8 +6,8 @@ require (
 	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.1.0
-	github.com/lianyun0502/exchange_conn v0.0.0-20240919045924-08163109a426
-	github.com/lianyun0502/shm v0.0.0-20240911090444-102e817aa599
+	github.com/lianyun0502/exchange_conn v0.0.0-20240926084851-131da433720c
+	github.com/lianyun0502/shm v0.0.0-20241023033231-c8cc2828c797
 	github.com/pkg/errors v0.9.1
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/sirupsen/logrus v1.9.3
