@@ -25,49 +25,51 @@ type IWsAgent interface {
 	Stop() error
 }
 
-type QuoteEngine struct {
-	Logger  *logrus.Logger
-	WsAgent map[string]IWsAgent
-
-	DoneSignal chan struct{}
+type IQuoteEngine interface {
+	Luanch()
 }
 
-func NewQuoteEngine(cfg *configs.Config, logger *logrus.Logger) *QuoteEngine {
-	// var wsAgent IWsAgent
-	// errHandle := WithErrorHandler(logger)
-	engine := &QuoteEngine{
-		Logger:     logger,
-		DoneSignal: make(chan struct{}),
-		WsAgent:    make(map[string]IWsAgent),
-	}
+type QuoteEngine[WS any] struct {
+	Logger       *logrus.Logger
+	Ws           map[string]*WS
+	DoneSignal   chan struct{}
+	SubscribeMap map[string][]string
+}
 
-	for _, wsCfg := range cfg.Websocket {
-		publisher_map := NewPublisherMap(wsCfg.Publisher)
-		subscribe_map := NewSubscribeMap(wsCfg.Subscribe)
 
-		switch strings.ToUpper(wsCfg.Exchange) {
-		case "BYBIT":
-			for k, v := range subscribe_map {
-				logger.Infof("ws agent for %s started", k)
-				msgHandle := WithBybitMessageHandler(&wsCfg, logger, publisher_map)
-				ws, err := bybit.NewWsQuoteClient(wsCfg.HostType, msgHandle)
-				if err != nil {
-					logger.Error(err)
-					continue
-				}
-				ws.Logger = logger
-				engine.WsAgent[k] = ws
-				ws.Connect()
-				go ws.StartLoop()
-				go func() {
-					for range ws.StartSignal {
-						ws.Subscribe(v)
-					}
-				}()
+func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) (engine IQuoteEngine) {
+	publisher_map := NewPublisherMap(cfg.Publisher)
+	switch strings.ToUpper(cfg.Exchange) {
+	case "BYBIT":
+		engine := new(QuoteEngine[bybit.WsBybitClient])
+		// engine.Logger = logger
+		engine.Ws = make(map[string]*bybit.WsBybitClient)
+		// engine.DoneSignal = make(chan struct{})
+		engine.SubscribeMap = NewSubscribeMap(cfg.Subscribe)
+		for k, _ := range engine.SubscribeMap {
+			logger.Infof("ws agent for %s started", k)
+			handle := WithBybitMessageHandler(cfg, logger, publisher_map)
+			ws, err := bybit.NewWsQuoteClient(cfg.HostType, handle)
+			if err != nil {
+				logger.Error(err)
+				continue
 			}
-		default:
-			logger.Errorf("unsupported exchange: %s", wsCfg.Exchange)
+			engine.Ws[k] = ws
+			ws.Logger = logger
+			go func () {
+				ws.Connect()
+				go func () {
+					for range ws.StartSignal {
+						go ws.Subscribe(engine.SubscribeMap[k])
+					}
+				}() 
+				go ws.StartLoop()	
+			}()
 		}
+
+	default:
+		logger.Error("Exchange not supported")
+		return nil
 	}
 	return engine
 }
@@ -144,4 +146,3 @@ func NewSubscriberMap(publishers []configs.PublisherConfig) map[string]*shm.Subs
 	}
 	return sub_map
 }
-

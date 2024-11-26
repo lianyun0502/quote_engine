@@ -24,6 +24,7 @@ Log:
 Websocket:
   - exchange: "bybit"
     url: "wss://stream.bybit.com/v5/public/linear"
+    host_type: "future"
     subscribe: 
       - "orderbook.50.MKRUSDT"
       - "orderbook.50.PEOPLEUSDT"

@@ -1,7 +1,7 @@
 Log:
   dir: "log/"
   link_name: "latest_log.log"
-  level: "info"
+  level: "debug"
   report_caller: false
   format: "2006-01-02 15:04:05.000000"
   writer:

@@ -19,11 +19,12 @@ func main() {
 	quote_engine.InitLogger(logger, &config.Log)
 	ctx, cancel := context.WithCancel(context.Background())
 	datastorage.NewDataStorage(ctx, config, logger)
-	quoteEngine := quote_engine.NewQuoteEngine(config, logger)
+	
+	quote_engine.NewQuoteEngine(&config.Websocket[0], logger)
 
 	// quoteEngine.Luanch()
 
-	quote_engine.WaitForClose(quoteEngine.Logger, ctx)
+	quote_engine.WaitForClose(logger, ctx)
 	cancel()
 }
 

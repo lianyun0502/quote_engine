@@ -8,7 +8,7 @@ require (
 	github.com/gocarina/gocsv v0.0.0-20240520201108-78e41c74b4b1
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.1.0
-	github.com/lianyun0502/exchange_conn v0.0.0-20241022092411-9a9ccd3a8dc6
+	github.com/lianyun0502/exchange_conn v0.0.0-20241126080742-b6f60ef8d065
 	github.com/lianyun0502/shm v0.0.0-20241126020025-65d1b31afaca
 	github.com/pkg/errors v0.9.1
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5

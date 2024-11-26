@@ -82,7 +82,6 @@ func WithTickerHandler(logger *logrus.Logger, writer IWriter) func([]byte) {
 	return func(rawData []byte) {
 		data, err := parser.Update(rawData)
 		if err != nil {
-			logger.Debug(string(rawData))
 			logger.Error(err)
 			return
 		}
@@ -117,7 +116,7 @@ func WithBybitMessageHandler(wsCfg *configs.WsClientConfig, logger *logrus.Logge
 	}
 	return func(rawData []byte) {
 		logger.Debugf("rev time: %d", time.Now().UnixNano()/int64(time.Millisecond))
-		// logger.Debug(string(rawData))
+		logger.Debug(string(rawData))
 		v := fastjson.MustParseBytes(rawData)
 		symbol := string(v.GetStringBytes("topic"))
 		topic := ByBitSymbolToTopic(symbol)
