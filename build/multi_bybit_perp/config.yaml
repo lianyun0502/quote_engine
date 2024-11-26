@@ -169,7 +169,7 @@ Websocket:
       - "tickers.AVAXUSDT"
       - "tickers.MNTUSDT"
       - "tickers.ATHUSDT"
-    reconn_time: 10
+    reconn_time: -1
     cmd:
       - method: "depth"
         params:

@@ -1,27 +1,26 @@
 package quote_engine
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"net/http"
 	"strings"
 	"time"
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
-	"github.com/lianyun0502/exchange_conn/v1"
+	// "github.com/lianyun0502/exchange_conn/v2/ws_client"
 	"github.com/lianyun0502/quote_engine/configs"
 
-	// "github.com/lianyun0502/exchange_conn/v1/binance_conn"
-	"github.com/lianyun0502/exchange_conn/v1/bybit_conn"
-	"github.com/lianyun0502/exchange_conn/v1/common"
+	"github.com/lianyun0502/exchange_conn/v2/bybit/ws_client"
+	"github.com/lianyun0502/exchange_conn/v2/common"
 	"github.com/lianyun0502/shm"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
 )
 
 type IWsAgent interface {
-	Subscribe(string)
 	Send([]byte) error
-	Connect(string) (*http.Response, error)
+	Subscribe([]string) ([]byte, error)
+	Connect() (*http.Response, error)
 	StartLoop()
 	Stop() error
 }
@@ -35,7 +34,7 @@ type QuoteEngine struct {
 
 func NewQuoteEngine(cfg *configs.Config, logger *logrus.Logger) *QuoteEngine {
 	// var wsAgent IWsAgent
-	errHandle := WithErrorHandler(logger)
+	// errHandle := WithErrorHandler(logger)
 	engine := &QuoteEngine{
 		Logger:     logger,
 		DoneSignal: make(chan struct{}),
@@ -47,30 +46,27 @@ func NewQuoteEngine(cfg *configs.Config, logger *logrus.Logger) *QuoteEngine {
 		subscribe_map := NewSubscribeMap(wsCfg.Subscribe)
 
 		switch strings.ToUpper(wsCfg.Exchange) {
-		// case "BINANCE":
-		// 	msgHandle := WithBinanceMessageHandler(&wsCfg, logger)
-		// 	wsAgent := exchange_conn.NewWebSocketAgent(binance_conn.NewWsClient(msgHandle, errHandle, wsCfg.ReconnTime))
-		// 	wsAgent.Connect(wsCfg.Url)
-		// 	wsAgent.Client.Logger = logger
-		// 	engine.WsAgent = wsAgent
 		case "BYBIT":
 			for k, v := range subscribe_map {
 				logger.Infof("ws agent for %s started", k)
 				msgHandle := WithBybitMessageHandler(&wsCfg, logger, publisher_map)
-				wsAgent := exchange_conn.NewWebSocketAgent(bybit_conn.NewWsClient(msgHandle, errHandle, wsCfg.ReconnTime))
-				wsAgent.Connect(wsCfg.Url)
-				wsAgent.Client.Logger = logger
-				engine.WsAgent[k] = wsAgent
+				ws, err := bybit.NewWsQuoteClient(wsCfg.HostType, msgHandle)
+				if err != nil {
+					logger.Error(err)
+					continue
+				}
+				ws.Logger = logger
+				engine.WsAgent[k] = ws
+				ws.Connect()
+				go ws.StartLoop()
 				go func() {
-					// subscribe to topics everytime when connection is established
-					for _ = range wsAgent.Client.StartSignal {
-						subs, _ := json.Marshal(v)
-						wsAgent.Subscribe(string(subs))
+					for range ws.StartSignal {
+						ws.Subscribe(v)
 					}
 				}()
-				go wsAgent.StartLoop()
-
 			}
+		default:
+			logger.Errorf("unsupported exchange: %s", wsCfg.Exchange)
 		}
 	}
 	return engine
@@ -148,3 +144,4 @@ func NewSubscriberMap(publishers []configs.PublisherConfig) map[string]*shm.Subs
 	}
 	return sub_map
 }
+

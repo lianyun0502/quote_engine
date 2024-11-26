@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	. "github.com/lianyun0502/quote_engine"
+	"github.com/lianyun0502/quote_engine"
 	"github.com/lianyun0502/quote_engine/configs"
 	"github.com/lianyun0502/quote_engine/data_storage"
 	"github.com/sirupsen/logrus"
@@ -16,12 +16,14 @@ func main() {
 		return
 	}
 	logger := logrus.New()
-	InitLogger(logger, &config.Log)
+	quote_engine.InitLogger(logger, &config.Log)
 	ctx, cancel := context.WithCancel(context.Background())
-	quoteEngine := NewQuoteEngine(config, logger)
 	datastorage.NewDataStorage(ctx, config, logger)
+	quoteEngine := quote_engine.NewQuoteEngine(config, logger)
 
-	WaitForClose(quoteEngine.Logger, ctx)
+	// quoteEngine.Luanch()
+
+	quote_engine.WaitForClose(quoteEngine.Logger, ctx)
 	cancel()
 }
 

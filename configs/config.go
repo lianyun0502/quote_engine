@@ -33,6 +33,7 @@ type PublisherConfig struct {
 
 type WsClientConfig struct {
 	Exchange   string            `yaml:"exchange"`
+	HostType   string            `yaml:"host_type"`
 	Url        string            `yaml:"url"`
 	Subscribe  []string          `yaml:"subscribe"`
 	ReconnTime int               `yaml:"reconn_time"`

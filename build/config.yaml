@@ -23,7 +23,9 @@ Log:
 
 Websocket:
   - exchange: "bybit"
+    host_type: "spot"
     url: "wss://stream.bybit.com/v5/public/spot"
+    reconn_time: -1
     subscribe: 
       - "orderbook.50.MKRUSDT"
       - "orderbook.50.PEOPLEUSDT"
@@ -169,20 +171,15 @@ Websocket:
       - "tickers.AVAXUSDT"
       - "tickers.MNTUSDT"
       - "tickers.ATHUSDT"
-    reconn_time: 10
-    cmd:
-      - method: "depth"
-        params:
-          symbol: "BTCUSDT"
-          limit: 5
     publisher:
       - topic: "orderbook"
-        skey: 158
-        size: 1073741 #1GB
+        skey: 125
+        size: 100000 #1GB
         store: true
       # - topic: "publicTrade"
-      #   skey: 287
+      #   skey: 124
       #   size: 1073741 #1GB
       - topic: "tickers"
-        skey: 358
+        skey: 129
         size: 1073741 #1GB
+        store: true

@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/lianyun0502/exchange_conn/v1/bybit_conn/data_stream"
+	"github.com/lianyun0502/exchange_conn/v2/bybit/data_stream"
 	"github.com/lianyun0502/quote_engine/configs"
 	"github.com/lianyun0502/shm"
 	"github.com/sirupsen/logrus"
