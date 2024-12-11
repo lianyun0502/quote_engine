@@ -2,15 +2,20 @@ package quote_engine
 
 import (
 	// "encoding/json"
+	"fmt"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
+	// "sort"
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
-	// "github.com/lianyun0502/exchange_conn/v2/ws_client"
 	"github.com/lianyun0502/quote_engine/configs"
 
-	"github.com/lianyun0502/exchange_conn/v2/bybit/ws_client"
+	bybit_http "github.com/lianyun0502/exchange_conn/v2/bybit/http_client"
+	bybit_ws "github.com/lianyun0502/exchange_conn/v2/bybit/ws_client"
+	bybit_resp "github.com/lianyun0502/exchange_conn/v2/bybit/response"
 	"github.com/lianyun0502/exchange_conn/v2/common"
 	"github.com/lianyun0502/shm"
 	"github.com/rifflock/lfshook"
@@ -32,8 +37,72 @@ type IQuoteEngine interface {
 type QuoteEngine[WS any] struct {
 	Logger       *logrus.Logger
 	Ws           map[string]*WS
+	Api 		 *bybit_http.ByBitClient
 	DoneSignal   chan struct{}
 	SubscribeMap map[string][]string
+}
+
+type instrument struct {
+	Scale int
+	Perp  *bybit_resp.InstrumentInfo
+	Spot  *bybit_resp.InstrumentInfo
+}
+
+
+func (qe *QuoteEngine[WS]) GetInstruments() map[string]*instrument {
+	spots, _ := qe.Api.Market_InstrumentsInfo("spot")
+	ins := make(map[string]*instrument)
+	for _, spot := range spots {
+		if spot.QuoteCoin != "USDT" || spot.Status != "Trading" {
+			continue
+		}
+		ins[spot.BaseCoin] = &instrument{
+			Perp: nil,
+			Spot: &spot,
+		}
+	}
+	perps, _ := qe.Api.Market_InstrumentsInfo("linear")
+	for _, perp := range perps {
+		if perp.QuoteCoin != "USDT" || perp.ContractType != "LinearPerpetual" {
+			continue
+		}
+		re := regexp.MustCompile(`(\d+)(\D+)`)
+		matches := re.FindStringSubmatch(perp.BaseCoin)
+		scale := int64(1)
+		if len(matches) >= 2 {
+			if matches[1] != "1" {
+				perp.BaseCoin = matches[2]
+				scale, _ = strconv.ParseInt(matches[1], 10, 64)
+			}
+		}
+		if _, ok := ins[perp.BaseCoin]; ok {
+			if ins[perp.BaseCoin].Perp != nil {
+				qe.Logger.WithField("Coin", perp.BaseCoin).Warn("Perp is not nil")
+			}
+			ins[perp.BaseCoin].Scale = int(scale)
+			ins[perp.BaseCoin].Perp = &perp
+		}
+	}
+	for coin, v := range ins {
+		if v.Perp == nil || v.Spot == nil {
+			delete(ins, coin)
+		}
+	}
+
+	// tickers, err := qe.Api.Market_Tickers("spot")
+	// if err != nil {
+	// 	qe.Logger.Error(err)
+	// }
+	// sort.Slice(tickers, func(i, j int) bool {
+	// 	tickers[i].Symbol
+	// 	return tickers[i].Symbol < tickers[j].Symbol
+	// })
+	// for _, ticker := range tickers {
+
+		
+	// }
+
+	return ins
 }
 
 
@@ -41,32 +110,38 @@ func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) (engine 
 	publisher_map := NewPublisherMap(cfg.Publisher)
 	switch strings.ToUpper(cfg.Exchange) {
 	case "BYBIT":
-		engine := new(QuoteEngine[bybit.WsBybitClient])
+		engine := new(QuoteEngine[bybit_ws.WsBybitClient])
 		// engine.Logger = logger
-		engine.Ws = make(map[string]*bybit.WsBybitClient)
-		// engine.DoneSignal = make(chan struct{})
-		engine.SubscribeMap = NewSubscribeMap(cfg.Subscribe)
-		for k, _ := range engine.SubscribeMap {
+		engine.Ws = make(map[string]*bybit_ws.WsBybitClient)
+		engine.Api = bybit_http.NewSpotClient("", "")
+		ins := engine.GetInstruments()
+		engine.SubscribeMap = NewSubscribeMap2(ins, cfg.HostType)
+		i := 0
+		subscribeList := make([][]string, 80)
+		for k, v := range ins {
+			i++
 			logger.Infof("ws agent for %s started", k)
+			logger.Infof("Perp: %s, Spot: %s", v.Perp.Symbol, v.Spot.Symbol)
+			subscribeList[i%80] = append(subscribeList[i%80], engine.SubscribeMap[k]...)
+		}
+		for i := range subscribeList{
 			handle := WithBybitMessageHandler(cfg, logger, publisher_map)
-			ws, err := bybit.NewWsQuoteClient(cfg.HostType, handle)
+			ws, err := bybit_ws.NewWsQuoteClient(cfg.HostType, handle)
 			if err != nil {
 				logger.Error(err)
 				continue
 			}
-			engine.Ws[k] = ws
+			engine.Ws[string(i)] = ws
 			ws.Logger = logger
+			ws.Connect()
 			go func () {
-				ws.Connect()
-				go func () {
-					for range ws.StartSignal {
-						go ws.Subscribe(engine.SubscribeMap[k])
-					}
-				}() 
-				go ws.StartLoop()	
-			}()
+				idx := i
+				for range ws.StartSignal {
+					ws.Subscribe(subscribeList[idx])
+				}
+			}() 
+			go ws.StartLoop()
 		}
-
 	default:
 		logger.Error("Exchange not supported")
 		return nil
@@ -129,6 +204,24 @@ func NewSubscribeMap(subscribes []string) map[string][]string {
 	}
 	return sub_map
 
+}
+func NewSubscribeMap2(subscribes map[string]*instrument, category string) map[string][]string {
+	sub_map := make(map[string][]string)
+	for k, ins := range subscribes {
+		if _, ok := sub_map[k]; !ok {
+			sub_map[k] =make([]string, 0)
+		switch category {
+		case "spot":
+			sub_map[k] = append(sub_map[k], fmt.Sprintf("orderbook.50.%s",ins.Spot.Symbol))
+			sub_map[k] = append(sub_map[k], fmt.Sprintf("tickers.%s",ins.Spot.Symbol))
+		case "future":
+			sub_map[k] = append(sub_map[k], fmt.Sprintf("orderbook.50.%s",ins.Perp.Symbol))
+			sub_map[k] = append(sub_map[k], fmt.Sprintf("tickers.%s",ins.Perp.Symbol))
+			}
+		}
+		
+	}
+	return sub_map
 }
 
 func NewPublisherMap(publishers []configs.PublisherConfig) map[string]*shm.Publisher {

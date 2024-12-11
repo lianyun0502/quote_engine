@@ -18,11 +18,10 @@ func main() {
 	logger := logrus.New()
 	quote_engine.InitLogger(logger, &config.Log)
 	ctx, cancel := context.WithCancel(context.Background())
-	datastorage.NewDataStorage(ctx, config, logger)
-	
+	if config.Data.Save {
+		datastorage.NewDataStorage(ctx, config, logger)
+	}
 	quote_engine.NewQuoteEngine(&config.Websocket[0], logger)
-
-	// quoteEngine.Luanch()
 
 	quote_engine.WaitForClose(logger, ctx)
 	cancel()

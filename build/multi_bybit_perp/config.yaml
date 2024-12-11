@@ -21,6 +21,9 @@ Log:
     info: "Info"
     debug: "Info"
 
+Data:
+  save: false
+
 Websocket:
   - exchange: "bybit"
     url: "wss://stream.bybit.com/v5/public/linear"

@@ -7,6 +7,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type DataConfig struct {
+	Save bool `yaml:"save"`
+}
 type LogConfig struct {
 	Dir          string            `yaml:"dir"`
 	LinkName     string            `yaml:"link_name"`
@@ -56,6 +59,7 @@ type APIClientConfig struct {
 
 type Config struct {
 	Log       LogConfig        `yaml:"Log"`
+	Data      DataConfig       `yaml:"Data"`
 	Websocket []WsClientConfig `yaml:"Websocket"`
 	APIClient APIClientConfig  `yaml:"APIClient"`
 }

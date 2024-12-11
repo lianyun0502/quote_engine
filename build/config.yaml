@@ -20,7 +20,9 @@ Log:
     warn: "Warn"
     info: "Info"
     debug: "Info"
-
+Data:
+  save: true
+  
 Websocket:
   - exchange: "bybit"
     host_type: "spot"
