@@ -28,6 +28,7 @@ Websocket:
     host_type: "future"
     url: "wss://stream.bybit.com/v5/public/spot"
     reconn_time: -1
+    ws_pool_size: 10
     subscribe: 
       - "orderbook.50.MKRUSDT"
       - "orderbook.50.PEOPLEUSDT"

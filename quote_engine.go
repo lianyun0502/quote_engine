@@ -113,7 +113,7 @@ func NewBybitQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) *Qu
 	engine.Ws = make(map[string]*bybit_ws.WsBybitClient)
 	engine.Api = bybit_http.NewSpotClient("", "")
 	for i:=0 ; i<cfg.WsPoolSize; i++ {
-		handle := WithBybitMessageHandler(cfg, logger, publisher_map)
+		handle := WithBybitMessageHandler2(cfg, logger, publisher_map)
 		ws, err := bybit_ws.NewWsQuoteClient(cfg.HostType, handle)
 		ws.PTimeout = 10
 		if err != nil {
@@ -147,6 +147,9 @@ func (qe *QuoteEngine[WS]) SetSubscribeInstruments(cfg *configs.WsClientConfig) 
 		qe.Logger.Infof("ws agent for %s started", k)
 		qe.Logger.Infof("subscribing %d", i)
 		qe.Ws[string(i%cfg.WsPoolSize)].Subscribe(v)
+		if i == 30{
+			break
+		}
 	}
 	
 }

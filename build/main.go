@@ -21,7 +21,6 @@ func main() {
 	if config.Data.Save {
 		datastorage.NewDataStorage(ctx, config, logger)
 	}
-	config.Websocket[0].WsPoolSize = 1
 	engine := quote_engine.NewBybitQuoteEngine(&config.Websocket[0], logger)
 	engine.SetSubscribeInstruments(&config.Websocket[0])
 

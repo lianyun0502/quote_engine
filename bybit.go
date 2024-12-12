@@ -128,3 +128,41 @@ func WithBybitMessageHandler(wsCfg *configs.WsClientConfig, logger *logrus.Logge
 		}
 	}
 }
+
+// 給定 WsClientConfig 和 logger 生成一個 bybit 的 message handler 的 closure,
+func WithBybitMessageHandler2(wsCfg *configs.WsClientConfig, logger *logrus.Logger, pub_map map[string]*shm.Publisher) func([]byte) {
+	// map of publisher, key is topic, value is publisher
+	handleMap := make(map[string]func([]byte))
+	for _, pub := range wsCfg.Publisher {
+		topic := ByBitSymbolToTopic(pub.Topic)
+		switch topic {
+		case "publicTrade":
+			handleMap[topic] = WithTradeHandler(logger, pub_map[topic])
+		case "orderbook":
+			handleMap[topic] = WithOrderBookHandler(logger, pub_map[topic])
+		case "tickers":
+			handleMap[topic] = WithTickerHandler(logger, pub_map[topic])
+		default:
+			logger.Errorf("can not gen handler for unknown topic: %s", topic)
+		}
+	}
+	dataCH := make(chan []byte, 1000)
+	go func() {
+		for rawData := range dataCH {
+			logger.Debugf("rev time: %d", time.Now().UnixNano()/int64(time.Millisecond))
+			logger.Debug(string(rawData))
+			v := fastjson.MustParseBytes(rawData)
+			symbol := string(v.GetStringBytes("topic"))
+			topic := ByBitSymbolToTopic(symbol)
+			if handler, ok := handleMap[topic]; ok {
+				logger.Debugf("rev topic: %s", topic)
+				handler(rawData)
+			} else {
+				logger.Errorf("unknown topic: %s", topic)
+			}
+		}
+	}()
+	return func(rawData []byte) {
+		dataCH <- rawData
+	}
+}
