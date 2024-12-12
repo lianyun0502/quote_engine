@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/lianyun0502/quote_engine"
 	"github.com/lianyun0502/quote_engine/configs"
@@ -22,8 +23,8 @@ func main() {
 		datastorage.NewDataStorage(ctx, config, logger)
 	}
 	engine := quote_engine.NewBybitQuoteEngine(&config.Websocket[0], logger)
-	engine.SetSubscribeInstruments(&config.Websocket[0])
-
+	engine.SetSubscribeInstruments()
+	engine.AddScheduler("UpdateSubscribeInstruments", 5*time.Minute, engine.UpdateSubscribeMap)
 	quote_engine.WaitForClose(logger, ctx)
 	cancel()
 }

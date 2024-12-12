@@ -3,8 +3,10 @@ package quote_engine
 import (
 	// "encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +26,7 @@ import (
 type IWsAgent interface {
 	Send([]byte) error
 	Subscribe([]string) ([]byte, error)
+	Unsubscribe([]string) ([]byte, error)
 	Connect() (*http.Response, error)
 	StartLoop()
 	Stop() error
@@ -37,9 +40,11 @@ type IQuoteEngine interface {
 type QuoteEngine[WS IWsAgent] struct {
 	Logger       *logrus.Logger
 	Ws           map[string]WS
-	Api 		 *bybit_http.ByBitClient
+	Api          *bybit_http.ByBitClient
 	DoneSignal   chan struct{}
 	SubscribeMap map[string][]string
+	Scheduler    map[string]*time.Ticker
+	Cfg          *configs.WsClientConfig
 	// subscribeFunc map[string] func()
 }
 
@@ -49,7 +54,6 @@ type instrument struct {
 	Spot  *bybit_resp.InstrumentInfo
 }
 
-
 func (qe *QuoteEngine[WS]) GetInstruments() map[string]*instrument {
 	spots, _ := qe.Api.Market_InstrumentsInfo("spot")
 	ins := make(map[string]*instrument)
@@ -57,6 +61,9 @@ func (qe *QuoteEngine[WS]) GetInstruments() map[string]*instrument {
 		if spot.QuoteCoin != "USDT" || spot.Status != "Trading" {
 			continue
 		}
+		// if spot.MarginTrade != "both" || spot.MarginTrade != "utaOnly" {
+		// 	continue
+		// }
 		ins[spot.BaseCoin] = &instrument{
 			Perp: nil,
 			Spot: &spot,
@@ -89,30 +96,142 @@ func (qe *QuoteEngine[WS]) GetInstruments() map[string]*instrument {
 			delete(ins, coin)
 		}
 	}
-
-	// tickers, err := qe.Api.Market_Tickers("spot")
-	// if err != nil {
-	// 	qe.Logger.Error(err)
-	// }
-	// sort.Slice(tickers, func(i, j int) bool {
-	// 	tickers[i].Symbol
-	// 	return tickers[i].Symbol < tickers[j].Symbol
-	// })
-	// for _, ticker := range tickers {
-
-		
-	// }
-
 	return ins
+}
+
+type CpStruct struct {
+	Coin string
+	Vol float64
+	Ins *instrument
+}
+func (qe *QuoteEngine[WS]) MatchFilter(ins map[string]*instrument) map[string]*instrument {
+	qe.Logger.Info("========= match Instruments =========")
+	InsSlice := make([]*CpStruct, 0)
+	for k, v := range ins {
+		tickers, err := qe.Api.Market_Tickers("linear", bybit_http.WithQuery(map[string]string{"symbol": v.Perp.Symbol}))
+		if err != nil {
+			qe.Logger.Error(err)
+		}
+
+		if len(tickers) == 0 {
+			delete(ins, k)
+			continue
+		}
+		// fr, _ := strconv.ParseFloat(tickers[0].FR, 64)
+		vol, _ := strconv.ParseFloat(tickers[0].Volume24h, 64)
+		InsSlice = append(InsSlice, &CpStruct{
+			Coin: k,
+			Vol: vol,
+			Ins: v,
+		})
+	}
+	sort.Slice(InsSlice, func(i, j int) bool {
+		return InsSlice[i].Vol > InsSlice[j].Vol
+	})
+	retIns := make(map[string]*instrument)
+	for i := 0; i < 50; i++ {
+		retIns[InsSlice[i].Coin] = InsSlice[i].Ins
+		qe.Logger.Infof("%s, Vol : %f", InsSlice[i].Coin, InsSlice[i].Vol)
+	}
+
+		// if fr >= 0.0007 {
+		// 	if v.Spot.MarginTrade == "none" || v.Spot.MarginTrade == "normalOnly" {
+		// 		continue
+		// 	}
+		// 	qe.Logger.Infof("%s, Fr : %f", v.Perp.Symbol, fr*100)
+
+		// } else if fr <= -0.0006 {
+		// 	if v.Spot.MarginTrade == "none" || v.Spot.MarginTrade == "normalOnly" {
+		// 		continue
+		// 	}
+		// 	qe.Logger.Infof("%s, Fr : %f", v.Perp.Symbol, fr*100)
+
+		// } else {
+		// 	delete(ins, k)
+		// }
+	qe.Logger.Infof("========= match =========")
+	return retIns
+}
+
+func (qe *QuoteEngine[WS]) GetSubscribeInstruments(newInstruments map[string]*instrument) map[string]*instrument {
+	ins := make(map[string]*instrument)
+	for k, v := range newInstruments {
+		if _, ok := qe.SubscribeMap[k]; !ok {
+			ins[k] = v
+		}
+	}
+	return ins
+}
+func (qe *QuoteEngine[WS]) GetUnsubscribeInstruments(newInstruments map[string]*instrument) map[string]*instrument {
+	ins := make(map[string]*instrument)
+	for k := range qe.SubscribeMap {
+		if _, ok := newInstruments[k]; !ok {
+			ins[k] = newInstruments[k]
+		}
+	}
+	return ins
+}
+
+func (qe *QuoteEngine[WS]) UpdateSubscribeMap() {
+	newInstruments := qe.MatchFilter(qe.GetInstruments())
+	addMap := NewSubscribeMap2(qe.GetSubscribeInstruments(newInstruments), qe.Cfg.HostType)
+	subMap := NewSubscribeMap2(qe.GetUnsubscribeInstruments(newInstruments), qe.Cfg.HostType)
+	for k, v := range addMap {
+		qe.SubscribeMap[k] = v
+	}
+	for k := range subMap {
+		delete(qe.SubscribeMap, k)
+	}
+	qe.Subscribes(addMap)
+	qe.Unsubscribes(subMap)
+}
+
+func (qe *QuoteEngine[WS]) Subscribes (sub map[string][]string) {
+	for k ,v := range sub {
+		i := nameToNumber(k, qe.Cfg.WsPoolSize)
+		qe.Logger.Infof("subscribe(%d) %s %s", i, k, qe.Cfg.HostType)
+		qe.Ws[string(i)].Subscribe(v)
+	}
+}
+
+func (qe *QuoteEngine[WS]) Unsubscribes (sub map[string][]string) {
+	for k ,v := range sub {
+		i := nameToNumber(k, qe.Cfg.WsPoolSize)
+		qe.Logger.Infof("unsubscribe(%d) %s %s", i, k, qe.Cfg.HostType)
+		qe.Ws[string(i)].Unsubscribe(v)
+	}
+}
+
+
+func nameToNumber(name string, num int) int {
+    name = strings.ToLower(name)
+    sum := 0
+    for _, char := range name {
+        sum += int(char - 'a' + 1)
+    }
+	
+    return int(math.Abs(float64(sum))) % num
+}
+
+func (qe *QuoteEngine[WS]) AddScheduler(name string, duration time.Duration, f func()) {
+	ticker := time.NewTicker(duration)
+	qe.Scheduler[name] = ticker
+	go func() {
+		for range ticker.C {
+			f()
+		}
+	}()
 }
 
 func NewBybitQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) *QuoteEngine[*bybit_ws.WsBybitClient] {
 	publisher_map := NewPublisherMap(cfg.Publisher)
 	engine := new(QuoteEngine[*bybit_ws.WsBybitClient])
+	engine.Scheduler = make(map[string]*time.Ticker)
 	engine.Logger = logger
 	engine.Ws = make(map[string]*bybit_ws.WsBybitClient)
 	engine.Api = bybit_http.NewSpotClient("", "")
-	for i:=0 ; i<cfg.WsPoolSize; i++ {
+	engine.Cfg = cfg
+	for i := 0; i < cfg.WsPoolSize; i++ {
 		handle := WithBybitMessageHandler2(cfg, logger, publisher_map)
 		ws, err := bybit_ws.NewWsQuoteClient(cfg.HostType, handle)
 		ws.PTimeout = 10
@@ -128,8 +247,7 @@ func NewBybitQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) *Qu
 	return engine
 }
 
-
-func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) (any) {
+func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) any {
 	switch strings.ToUpper(cfg.Exchange) {
 	case "BYBIT":
 		return NewBybitQuoteEngine(cfg, logger)
@@ -139,26 +257,16 @@ func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) (any) {
 	}
 }
 
-func (qe *QuoteEngine[WS]) SetSubscribeInstruments(cfg *configs.WsClientConfig) {
-	qe.SubscribeMap = NewSubscribeMap2(qe.GetInstruments(), cfg.HostType)
-	i := 0
-	for k, v := range qe.SubscribeMap {
-		i++
-		qe.Logger.Infof("ws agent for %s started", k)
-		qe.Logger.Infof("subscribing %d", i)
-		qe.Ws[string(i%cfg.WsPoolSize)].Subscribe(v)
-		if i == 30{
-			break
-		}
-	}
-	
+func (qe *QuoteEngine[WS]) SetSubscribeInstruments() {
+	qe.SubscribeMap = NewSubscribeMap2(qe.MatchFilter(qe.GetInstruments()), qe.Cfg.HostType)
+	qe.Subscribes(qe.SubscribeMap)
 }
 
 func WithSubscribeFunc(startSignal chan struct{}, wsAgent IWsAgent, subscribeList []string) func() {
 	return func() {
 		for range startSignal {
-			for i:= range subscribeList {
-				wsAgent.Subscribe(subscribeList[i:i+1])
+			for i := range subscribeList {
+				wsAgent.Subscribe(subscribeList[i : i+1])
 			}
 		}
 	}
@@ -224,17 +332,17 @@ func NewSubscribeMap2(subscribes map[string]*instrument, category string) map[st
 	sub_map := make(map[string][]string)
 	for k, ins := range subscribes {
 		if _, ok := sub_map[k]; !ok {
-			sub_map[k] =make([]string, 0)
-		switch category {
-		case "spot":
-			sub_map[k] = append(sub_map[k], fmt.Sprintf("orderbook.50.%s",ins.Spot.Symbol))
-			sub_map[k] = append(sub_map[k], fmt.Sprintf("tickers.%s",ins.Spot.Symbol))
-		case "future":
-			sub_map[k] = append(sub_map[k], fmt.Sprintf("orderbook.50.%s",ins.Perp.Symbol))
-			sub_map[k] = append(sub_map[k], fmt.Sprintf("tickers.%s",ins.Perp.Symbol))
+			sub_map[k] = make([]string, 0)
+			switch category {
+			case "spot":
+				sub_map[k] = append(sub_map[k], fmt.Sprintf("orderbook.50.%s", ins.Spot.Symbol))
+				sub_map[k] = append(sub_map[k], fmt.Sprintf("tickers.%s", ins.Spot.Symbol))
+			case "future":
+				sub_map[k] = append(sub_map[k], fmt.Sprintf("orderbook.50.%s", ins.Perp.Symbol))
+				sub_map[k] = append(sub_map[k], fmt.Sprintf("tickers.%s", ins.Perp.Symbol))
 			}
 		}
-		
+
 	}
 	return sub_map
 }
