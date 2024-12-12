@@ -21,11 +21,11 @@ Log:
     info: "Info"
     debug: "Info"
 Data:
-  save: true
+  save: false
 
 Websocket:
   - exchange: "bybit"
-    host_type: "spot"
+    host_type: "future"
     url: "wss://stream.bybit.com/v5/public/spot"
     reconn_time: -1
     subscribe: 

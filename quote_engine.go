@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/lianyun0502/quote_engine/configs"
 
@@ -32,15 +31,16 @@ type IWsAgent interface {
 
 type IQuoteEngine interface {
 	Luanch()
+	SetSubscribeInstruments(cfg *configs.WsClientConfig)
 }
 
-type QuoteEngine[WS any] struct {
+type QuoteEngine[WS IWsAgent] struct {
 	Logger       *logrus.Logger
-	Ws           map[string]*WS
+	Ws           map[string]WS
 	Api 		 *bybit_http.ByBitClient
 	DoneSignal   chan struct{}
 	SubscribeMap map[string][]string
-	subscribeFunc map[string] func()
+	// subscribeFunc map[string] func()
 }
 
 type instrument struct {
@@ -106,46 +106,49 @@ func (qe *QuoteEngine[WS]) GetInstruments() map[string]*instrument {
 	return ins
 }
 
-
-func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) (engine IQuoteEngine) {
+func NewBybitQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) *QuoteEngine[*bybit_ws.WsBybitClient] {
 	publisher_map := NewPublisherMap(cfg.Publisher)
+	engine := new(QuoteEngine[*bybit_ws.WsBybitClient])
+	engine.Logger = logger
+	engine.Ws = make(map[string]*bybit_ws.WsBybitClient)
+	engine.Api = bybit_http.NewSpotClient("", "")
+	for i:=0 ; i<cfg.WsPoolSize; i++ {
+		handle := WithBybitMessageHandler(cfg, logger, publisher_map)
+		ws, err := bybit_ws.NewWsQuoteClient(cfg.HostType, handle)
+		ws.PTimeout = 10
+		if err != nil {
+			logger.Error(err)
+			continue
+		}
+		engine.Ws[string(i)] = ws
+		ws.Logger = logger
+		ws.Connect()
+		go ws.StartLoop()
+	}
+	return engine
+}
+
+
+func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) (any) {
 	switch strings.ToUpper(cfg.Exchange) {
 	case "BYBIT":
-		engine := new(QuoteEngine[bybit_ws.WsBybitClient])
-		engine.Logger = logger
-		engine.subscribeFunc = make(map[string]func())
-		engine.Ws = make(map[string]*bybit_ws.WsBybitClient)
-		engine.Api = bybit_http.NewSpotClient("", "")
-		ins := engine.GetInstruments()
-		engine.SubscribeMap = NewSubscribeMap2(ins, cfg.HostType)
-		i := 0
-		subscribeList := make([][]string, 5)
-		for k, v := range ins {
-			i++
-			logger.Infof("ws agent for %s started", k)
-			logger.Infof("Perp: %s, Spot: %s", v.Perp.Symbol, v.Spot.Symbol)
-			subscribeList[i%5] = append(subscribeList[i%5], engine.SubscribeMap[k]...)
-		}
-		for i := range subscribeList{
-			handle := WithBybitMessageHandler(cfg, logger, publisher_map)
-			ws, err := bybit_ws.NewWsQuoteClient(cfg.HostType, handle)
-			ws.PTimeout = 10
-			if err != nil {
-				logger.Error(err)
-				continue
-			}
-			engine.Ws[string(i)] = ws
-			ws.Logger = logger
-			ws.Connect()
-			engine.subscribeFunc[string(i)] = WithSubscribeFunc(ws.StartSignal, ws, subscribeList[i])
-			go engine.subscribeFunc[string(i)]()
-			go ws.StartLoop()
-		}
+		return NewBybitQuoteEngine(cfg, logger)
 	default:
 		logger.Error("Exchange not supported")
 		return nil
 	}
-	return engine
+}
+
+func (qe *QuoteEngine[WS]) SetSubscribeInstruments(cfg *configs.WsClientConfig) {
+	qe.SubscribeMap = NewSubscribeMap2(qe.GetInstruments(), cfg.HostType)
+	i := 0
+	for k, v := range qe.SubscribeMap {
+		i++
+		qe.Logger.Infof("ws agent for %s started", k)
+		qe.Logger.Infof("subscribing %d", i)
+		qe.Ws[string(i%cfg.WsPoolSize)].Subscribe(v)
+	}
+	
 }
 
 func WithSubscribeFunc(startSignal chan struct{}, wsAgent IWsAgent, subscribeList []string) func() {

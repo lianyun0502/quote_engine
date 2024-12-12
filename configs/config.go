@@ -42,6 +42,7 @@ type WsClientConfig struct {
 	ReconnTime int               `yaml:"reconn_time"`
 	CMD        []WsAPIConfig     `yaml:"cmd"`
 	Publisher  []PublisherConfig `yaml:"publisher"`
+	WsPoolSize int               `yaml:"ws_pool_size"`
 }
 
 type WsAPIConfig struct {
