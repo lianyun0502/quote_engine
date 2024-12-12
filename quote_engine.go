@@ -119,16 +119,17 @@ func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) (engine 
 		ins := engine.GetInstruments()
 		engine.SubscribeMap = NewSubscribeMap2(ins, cfg.HostType)
 		i := 0
-		subscribeList := make([][]string, 10)
+		subscribeList := make([][]string, 5)
 		for k, v := range ins {
 			i++
 			logger.Infof("ws agent for %s started", k)
 			logger.Infof("Perp: %s, Spot: %s", v.Perp.Symbol, v.Spot.Symbol)
-			subscribeList[i%10] = append(subscribeList[i%10], engine.SubscribeMap[k]...)
+			subscribeList[i%5] = append(subscribeList[i%5], engine.SubscribeMap[k]...)
 		}
 		for i := range subscribeList{
 			handle := WithBybitMessageHandler(cfg, logger, publisher_map)
 			ws, err := bybit_ws.NewWsQuoteClient(cfg.HostType, handle)
+			ws.PTimeout = 10
 			if err != nil {
 				logger.Error(err)
 				continue
@@ -150,7 +151,7 @@ func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) (engine 
 func WithSubscribeFunc(startSignal chan struct{}, wsAgent IWsAgent, subscribeList []string) func() {
 	return func() {
 		for range startSignal {
-			for i, _ := range subscribeList {
+			for i:= range subscribeList {
 				wsAgent.Subscribe(subscribeList[i:i+1])
 			}
 		}
