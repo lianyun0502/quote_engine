@@ -8,14 +8,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	// "sort"
 
+	
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/lianyun0502/quote_engine/configs"
 
 	bybit_http "github.com/lianyun0502/exchange_conn/v2/bybit/http_client"
-	bybit_ws "github.com/lianyun0502/exchange_conn/v2/bybit/ws_client"
 	bybit_resp "github.com/lianyun0502/exchange_conn/v2/bybit/response"
+	bybit_ws "github.com/lianyun0502/exchange_conn/v2/bybit/ws_client"
 	"github.com/lianyun0502/exchange_conn/v2/common"
 	"github.com/lianyun0502/shm"
 	"github.com/rifflock/lfshook"
@@ -40,6 +40,7 @@ type QuoteEngine[WS any] struct {
 	Api 		 *bybit_http.ByBitClient
 	DoneSignal   chan struct{}
 	SubscribeMap map[string][]string
+	subscribeFunc map[string] func()
 }
 
 type instrument struct {
@@ -111,18 +112,19 @@ func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) (engine 
 	switch strings.ToUpper(cfg.Exchange) {
 	case "BYBIT":
 		engine := new(QuoteEngine[bybit_ws.WsBybitClient])
-		// engine.Logger = logger
+		engine.Logger = logger
+		engine.subscribeFunc = make(map[string]func())
 		engine.Ws = make(map[string]*bybit_ws.WsBybitClient)
 		engine.Api = bybit_http.NewSpotClient("", "")
 		ins := engine.GetInstruments()
 		engine.SubscribeMap = NewSubscribeMap2(ins, cfg.HostType)
 		i := 0
-		subscribeList := make([][]string, 150)
+		subscribeList := make([][]string, 10)
 		for k, v := range ins {
 			i++
 			logger.Infof("ws agent for %s started", k)
 			logger.Infof("Perp: %s, Spot: %s", v.Perp.Symbol, v.Spot.Symbol)
-			subscribeList[i%150] = append(subscribeList[i%150], engine.SubscribeMap[k]...)
+			subscribeList[i%10] = append(subscribeList[i%10], engine.SubscribeMap[k]...)
 		}
 		for i := range subscribeList{
 			handle := WithBybitMessageHandler(cfg, logger, publisher_map)
@@ -134,12 +136,8 @@ func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) (engine 
 			engine.Ws[string(i)] = ws
 			ws.Logger = logger
 			ws.Connect()
-			go func () {
-				idx := i
-				for range ws.StartSignal {
-					ws.Subscribe(subscribeList[idx])
-				}
-			}() 
+			engine.subscribeFunc[string(i)] = WithSubscribeFunc(ws.StartSignal, ws, subscribeList[i])
+			go engine.subscribeFunc[string(i)]()
 			go ws.StartLoop()
 		}
 	default:
@@ -147,6 +145,16 @@ func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) (engine 
 		return nil
 	}
 	return engine
+}
+
+func WithSubscribeFunc(startSignal chan struct{}, wsAgent IWsAgent, subscribeList []string) func() {
+	return func() {
+		for range startSignal {
+			for i, _ := range subscribeList {
+				wsAgent.Subscribe(subscribeList[i:i+1])
+			}
+		}
+	}
 }
 
 func WithErrorHandler(logger *logrus.Logger) func(error) {
