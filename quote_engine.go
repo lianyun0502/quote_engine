@@ -43,6 +43,7 @@ type QuoteEngine[WS IWsAgent] struct {
 	Api          *bybit_http.ByBitClient
 	DoneSignal   chan struct{}
 	SubscribeMap map[string][]string
+	SubscribeIns map[string]*instrument
 	Scheduler    map[string]*time.Ticker
 	Cfg          *configs.WsClientConfig
 	// subscribeFunc map[string] func()
@@ -156,17 +157,19 @@ func (qe *QuoteEngine[WS]) MatchFilter(ins map[string]*instrument) map[string]*i
 func (qe *QuoteEngine[WS]) GetSubscribeInstruments(newInstruments map[string]*instrument) map[string]*instrument {
 	ins := make(map[string]*instrument)
 	for k, v := range newInstruments {
-		if _, ok := qe.SubscribeMap[k]; !ok {
+		if _, ok := qe.SubscribeIns[k]; !ok {
 			ins[k] = v
+			qe.SubscribeIns[k] = v
 		}
 	}
 	return ins
 }
 func (qe *QuoteEngine[WS]) GetUnsubscribeInstruments(newInstruments map[string]*instrument) map[string]*instrument {
 	ins := make(map[string]*instrument)
-	for k := range qe.SubscribeMap {
+	for k := range qe.SubscribeIns {
 		if _, ok := newInstruments[k]; !ok {
-			ins[k] = newInstruments[k]
+			ins[k] = qe.SubscribeIns[k]
+			delete(qe.SubscribeIns, k)
 		}
 	}
 	return ins
@@ -258,7 +261,8 @@ func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) any {
 }
 
 func (qe *QuoteEngine[WS]) SetSubscribeInstruments() {
-	qe.SubscribeMap = NewSubscribeMap2(qe.MatchFilter(qe.GetInstruments()), qe.Cfg.HostType)
+	qe.SubscribeIns = qe.MatchFilter(qe.GetInstruments())
+	qe.SubscribeMap = NewSubscribeMap2(qe.SubscribeIns, qe.Cfg.HostType)
 	qe.Subscribes(qe.SubscribeMap)
 }
 
