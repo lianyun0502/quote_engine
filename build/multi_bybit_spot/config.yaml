@@ -28,7 +28,6 @@ Websocket:
   - exchange: "bybit"
     url: "wss://stream.bybit.com/v5/public/spot"
     host_type: "spot"
-    reconn_time: -1
     ws_pool_size: 10
     subscribe: 
       - "orderbook.50.MKRUSDT"
