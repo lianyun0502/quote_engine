@@ -1,0 +1,31 @@
+syntax = "proto3";  
+
+package quote_proto;  // for name space
+option go_package = "proto/quote_proto";  // generated code 的 full Go import path
+
+
+
+message SubscribeResponse {
+  int64 result = 1;
+}
+
+message UnsubscribeResponse {
+  int64 result = 1;
+}
+
+message Subscribe {
+  string symbol = 1;
+}
+
+message Unsubscribe {
+  string symbol = 1;
+}
+
+message ListQuotesRequest {}
+
+service QuoteService {
+  rpc ListQuotes(ListQuotesRequest) returns (stream Subscribe) {};
+  rpc SubscribeCoin (stream Subscribe) returns (SubscribeResponse) {};
+  rpc UnsubscribeCoin (stream Unsubscribe) returns (UnsubscribeResponse) {};
+}
+

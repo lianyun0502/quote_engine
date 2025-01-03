@@ -58,11 +58,17 @@ type APIClientConfig struct {
 	Param    map[string]string `yaml:"params"`
 }
 
+type GRPCServerConfig struct {
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
+}
+
 type Config struct {
-	Log       LogConfig        `yaml:"Log"`
-	Data      DataConfig       `yaml:"Data"`
-	Websocket []WsClientConfig `yaml:"Websocket"`
-	APIClient APIClientConfig  `yaml:"APIClient"`
+	Log        LogConfig        `yaml:"Log"`
+	Data       DataConfig       `yaml:"Data"`
+	Websocket  []WsClientConfig `yaml:"Websocket"`
+	APIClient  APIClientConfig  `yaml:"APIClient"`
+	GRPCServer GRPCServerConfig `yaml:"GRPCServer"`
 }
 
 func LoadConfig(path string) (*Config, error) {

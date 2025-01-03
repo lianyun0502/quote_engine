@@ -1,0 +1,116 @@
+Log:
+  dir: "log/"
+  link_name: "latest_log.log"
+  level: "info"
+  report_caller: false
+  format: "2006-01-02 15:04:05.000000"
+  writer:
+    - name: "Info"
+      path: "%Y%m%d_%H%M.log"
+      max_age: 120
+      rotation_time: 1
+    - name: "Warn"
+      path: "warn/%Y%m%d_%H%M.log"
+      max_age: 120
+      rotation_time: 1
+  write_map:
+    panic: "Warn"
+    fatal: "Warn"
+    error: "Warn"
+    warn: "Warn"
+    info: "Info"
+    debug: "Info"
+Data:
+  save: false
+
+Websocket:
+  - exchange: "bybit"
+    host_type: "future"
+    url: "wss://stream.bybit.com/v5/public/spot"
+    reconn_time: -1
+    ws_pool_size: 10
+    subscribe: 
+      - "MKR"
+      - "PEOPLE"
+      - "PENDLE"
+      - "JUP"
+      - "JTO"
+      - "JASMYUSDT"
+      - "ICPUSDT"
+      - "LDOUSDT"
+      - "MEMEUSDT"
+      - "LTCUSDT"
+      - "WLDUSDT"
+      - "WIFUSDT"
+      - "ZKUSDT"
+      - "XLMUSDT"
+      - "RENDERUSDT"
+      - "SEIUSDT"
+      - "RUNEUSDT"
+      - "SUIUSDT"
+      - "STRKUSDT"
+      - "SOLUSDT"
+      - "BOMEUSDT"
+      - "ATOMUSDT"
+      - "BONKUSDT"
+      - "ADAUSDT"
+      - "ARUSDT"
+      - "ARBUSDT"
+      - "ETHUSDT"
+      - "EOSUSDT"
+      - "ENAUSDT"
+      - "FTMUSDT"
+      - "HBARUSDT"
+      - "GMTUSDT"
+      - "GALAUSDT"
+      - "DYDXUSDT"
+      - "DOTUSDT"
+      - "DOGEUSDT"
+      - "XRPUSDT"
+      - "ARKMUSDT"
+      - "INJUSDT"
+      - "MEWUSDT"
+      - "BLURUSDT"
+      - "BNBUSDT"
+      - "IOUSDT"
+      - "LINKUSDT"
+      - "FILUSDT"
+      - "OPUSDT"
+      - "PEPEUSDT"
+      - "SHIBUSDT"
+      - "BTCUSDT"
+      - "FLOKIUSDT"
+      - "APTUSDT"
+      - "AAVEUSDT"
+      - "ORDIUSDT"
+      - "USDCUSDT"
+      - "NEARUSDT"
+      - "ETHFIUSDT"
+      - "NOTUSDT"
+      - "USDEUSDT"
+      - "CRVUSDT"
+      - "APEUSDT"
+      - "ZROUSDT"
+      - "ONDOUSDT"
+      - "STXUSDT"
+      - "PYTHUSDT"
+      - "BCHUSDT"
+      - "DOGSUSDT"
+      - "TONUSDT"
+      - "TRXUSDT"
+      - "TIAUSDT"
+      - "AVAXUSDT"
+      - "MNTUSDT"
+      - "ATHUSDT"
+    publisher:
+      - topic: "orderbook"
+        skey: 125
+        size: 100000 #1GB
+        store: true
+      # - topic: "publicTrade"
+      #   skey: 124
+      #   size: 1073741 #1GB
+      - topic: "tickers"
+        skey: 129
+        size: 1073741 #1GB
+        store: true

@@ -2,9 +2,11 @@ package quote_engine
 
 import (
 	// "encoding/json"
+	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -33,8 +35,16 @@ type IWsAgent interface {
 }
 
 type IQuoteEngine interface {
-	Luanch()
-	SetSubscribeInstruments(cfg *configs.WsClientConfig)
+	// Luanch()
+	SetSubscribeInstruments()
+	SubscribeQuotes(quotes []string)
+	UnsubscribeQuotes(quotes []string)
+	GetSubscriptions() []string
+}
+
+type WsClient struct {
+	WsClient *bybit_ws.WsBybitClient
+	Quotes map[string]Quote
 }
 
 type QuoteEngine[WS IWsAgent] struct {
@@ -42,11 +52,11 @@ type QuoteEngine[WS IWsAgent] struct {
 	Ws           map[string]WS
 	Api          *bybit_http.ByBitClient
 	DoneSignal   chan struct{}
-	SubscribeMap map[string][]string
-	SubscribeIns map[string]*instrument
+	SubscribeMap map[string][]string    // map[Coin] [] subscribe topics
+	SubscribeIns map[string]*instrument // map[Coin] instrument infomation
 	Scheduler    map[string]*time.Ticker
 	Cfg          *configs.WsClientConfig
-	// subscribeFunc map[string] func()
+	WsPool       map[string]*WsClient
 }
 
 type instrument struct {
@@ -102,11 +112,12 @@ func (qe *QuoteEngine[WS]) GetInstruments() map[string]*instrument {
 
 type CpStruct struct {
 	Coin string
-	Vol float64
-	Ins *instrument
+	Vol  float64
+	Ins  *instrument
 }
+
 func (qe *QuoteEngine[WS]) MatchFilter(ins map[string]*instrument) map[string]*instrument {
-	qe.Logger.Info("========= match Instruments =========")
+	qe.Logger.Info("========= First 30 VOL coin =========")
 	InsSlice := make([]*CpStruct, 0)
 	for k, v := range ins {
 		tickers, err := qe.Api.Market_Tickers("linear", bybit_http.WithQuery(map[string]string{"symbol": v.Perp.Symbol}))
@@ -119,41 +130,24 @@ func (qe *QuoteEngine[WS]) MatchFilter(ins map[string]*instrument) map[string]*i
 			continue
 		}
 		// fr, _ := strconv.ParseFloat(tickers[0].FR, 64)
-		vol, _ := strconv.ParseFloat(tickers[0].Volume24h, 64)
+		vol, _ := strconv.ParseFloat(tickers[0].Turnover24h, 64)
 		InsSlice = append(InsSlice, &CpStruct{
 			Coin: k,
-			Vol: vol,
-			Ins: v,
+			Vol:  vol,
+			Ins:  v,
 		})
 	}
 	sort.Slice(InsSlice, func(i, j int) bool {
 		return InsSlice[i].Vol > InsSlice[j].Vol
 	})
 	retIns := make(map[string]*instrument)
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 30; i++ {
 		retIns[InsSlice[i].Coin] = InsSlice[i].Ins
 		qe.Logger.Infof("%s, Vol : %f", InsSlice[i].Coin, InsSlice[i].Vol)
 	}
-
-		// if fr >= 0.0007 {
-		// 	if v.Spot.MarginTrade == "none" || v.Spot.MarginTrade == "normalOnly" {
-		// 		continue
-		// 	}
-		// 	qe.Logger.Infof("%s, Fr : %f", v.Perp.Symbol, fr*100)
-
-		// } else if fr <= -0.0006 {
-		// 	if v.Spot.MarginTrade == "none" || v.Spot.MarginTrade == "normalOnly" {
-		// 		continue
-		// 	}
-		// 	qe.Logger.Infof("%s, Fr : %f", v.Perp.Symbol, fr*100)
-
-		// } else {
-		// 	delete(ins, k)
-		// }
 	qe.Logger.Infof("========= match =========")
 	return retIns
 }
-
 func (qe *QuoteEngine[WS]) GetSubscribeInstruments(newInstruments map[string]*instrument) map[string]*instrument {
 	ins := make(map[string]*instrument)
 	for k, v := range newInstruments {
@@ -174,7 +168,6 @@ func (qe *QuoteEngine[WS]) GetUnsubscribeInstruments(newInstruments map[string]*
 	}
 	return ins
 }
-
 func (qe *QuoteEngine[WS]) UpdateSubscribeMap() {
 	newInstruments := qe.MatchFilter(qe.GetInstruments())
 	addMap := NewSubscribeMap2(qe.GetSubscribeInstruments(newInstruments), qe.Cfg.HostType)
@@ -189,33 +182,121 @@ func (qe *QuoteEngine[WS]) UpdateSubscribeMap() {
 	qe.Unsubscribes(subMap)
 }
 
-func (qe *QuoteEngine[WS]) Subscribes (sub map[string][]string) {
-	for k ,v := range sub {
+func (qe *QuoteEngine[WS]) IsCoinInPool(coin string) (bool, *WsClient) {
+	for _, v := range qe.WsPool{
+		if _, ok := v.Quotes[coin]; ok {
+			return true, v
+		}
+	}
+	return false, nil
+}
+
+func (qe *QuoteEngine[WS]) GetLeastLoadedWS() string {
+	minSubscriptions := int(^uint(0) >> 1) // Max int value
+	var wsID string
+	for id, ws := range qe.WsPool {
+		if len(ws.Quotes) < minSubscriptions {
+			minSubscriptions = len(ws.Quotes)
+			wsID = id
+		}
+	}
+	return wsID
+}
+
+func (qe *QuoteEngine[WS]) SubscribeQuotes(coins []string) {
+	for _, coin := range coins {
+		if ok, _ := qe.IsCoinInPool(coin); ok {
+			qe.Logger.Warnf("Coin %s already subscribed", coin)
+			continue
+		}
+		topics := GetSubscribeTopics(qe.SubscribeIns, coin, qe.Cfg.HostType)
+		fmt.Println(topics)
+		id := qe.GetLeastLoadedWS()
+		_, err := qe.WsPool[id].WsClient.Subscribe(topics)
+		if err != nil {
+			qe.Logger.Error(err)
+			continue
+		}
+		var symbol string
+		switch qe.Cfg.HostType {
+		case "spot":
+			symbol = qe.SubscribeIns[coin].Spot.Symbol
+		case "future":
+			symbol = qe.SubscribeIns[coin].Perp.Symbol
+		}
+		// qe.Logger.Info(string(resp))
+		qe.WsPool[id].Quotes[coin] = Quote{
+			Coin:   coin,
+			Symbol: symbol,
+			Topics: topics,
+		}
+	}
+	qe.SaveSubscribes()
+}
+func (qe *QuoteEngine[WS]) UnsubscribeQuotes(coins []string) {
+	for _, coin := range coins {
+		ok, ws := qe.IsCoinInPool(coin)
+		if !ok { 
+			qe.Logger.Warnf("Coin %s not subscribed", coin)
+			continue
+		}
+		topics := GetSubscribeTopics(qe.SubscribeIns, coin, qe.Cfg.HostType)
+		fmt.Println(topics)
+		_, err := ws.WsClient.Unsubscribe(topics)
+		if err != nil {
+			qe.Logger.Error(err)
+			continue
+		}
+		// qe.Logger.Info(string(resp))
+		delete(ws.Quotes, coin)
+	}
+	qe.SaveSubscribes()
+}
+func (qe *QuoteEngine[WS]) Subscribes(sub map[string][]string) {
+	for k, v := range sub {
 		i := nameToNumber(k, qe.Cfg.WsPoolSize)
 		qe.Logger.Infof("subscribe(%d) %s %s", i, k, qe.Cfg.HostType)
-		qe.Ws[string(i)].Subscribe(v)
+		qe.Ws[strconv.FormatInt(int64(i), 10)].Subscribe(v)
 	}
 }
-
-func (qe *QuoteEngine[WS]) Unsubscribes (sub map[string][]string) {
-	for k ,v := range sub {
+func (qe *QuoteEngine[WS]) Unsubscribes(sub map[string][]string) {
+	for k, v := range sub {
 		i := nameToNumber(k, qe.Cfg.WsPoolSize)
 		qe.Logger.Infof("unsubscribe(%d) %s %s", i, k, qe.Cfg.HostType)
-		qe.Ws[string(i)].Unsubscribe(v)
+		qe.Ws[strconv.FormatInt(int64(i), 10)].Unsubscribe(v)
 	}
 }
-
-
-func nameToNumber(name string, num int) int {
-    name = strings.ToLower(name)
-    sum := 0
-    for _, char := range name {
-        sum += int(char - 'a' + 1)
-    }
-	
-    return int(math.Abs(float64(sum))) % num
+func (qe *QuoteEngine[WS]) GetSubscriptions() []string{
+	var subs []string
+	for _, v := range qe.WsPool {
+		for _, sub := range v.Quotes {
+			subs = append(subs, sub.Coin)
+		}
+	}
+	return subs
 }
-
+func (qe *QuoteEngine[WS]) SetSubscribeInstruments() {
+	qe.SubscribeIns = qe.GetInstruments()
+	subscribtions := qe.LoadSubscribes()
+	if subscribtions != nil{
+		if len(subscribtions) > 0 {
+			qe.Logger.Info("Load subscribes from file")
+			for _, v := range subscribtions {
+				sub := make([]string, 0)
+				for _, quote := range v {
+					// fmt.Printf("%+v\n", quote)
+					sub = append(sub, quote.Coin)
+				}
+				qe.SubscribeQuotes(sub)
+			}
+			return
+		}
+	}
+	insFisrt30 := qe.MatchFilter(qe.SubscribeIns)
+	for k := range insFisrt30 {
+		qe.SubscribeQuotes([]string{k})
+	}
+}
 func (qe *QuoteEngine[WS]) AddScheduler(name string, duration time.Duration, f func()) {
 	ticker := time.NewTicker(duration)
 	qe.Scheduler[name] = ticker
@@ -226,14 +307,72 @@ func (qe *QuoteEngine[WS]) AddScheduler(name string, duration time.Duration, f f
 	}()
 }
 
+type Quote struct {
+	Coin   string   `json:"coin"`
+	Symbol string   `json:"symbol"`
+	Topics []string `json:"topics"`
+}
+
+func (qe *QuoteEngine[WS]) LoadSubscribes() map[string][]*Quote {
+	file, err := os.OpenFile("subscribes.json", os.O_RDONLY, 0666)
+	if err != nil {
+		qe.Logger.Error(err)
+		return nil
+	}
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	quotes := make(map[string][]*Quote)
+	err = decoder.Decode(&quotes)
+	if err != nil {
+		qe.Logger.Error(err)
+		return nil
+	}
+	return quotes
+}
+
+func (qe *QuoteEngine[WS]) SaveSubscribes() {
+	file, err := os.OpenFile("subscribes.json", os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		qe.Logger.Error(err)
+		return
+	}
+	defer file.Close()
+	encoder := json.NewEncoder(file)
+	subscribe := make(map[string][]*Quote)
+	for k, v := range qe.WsPool {
+		for _, sub := range v.Quotes {
+			if _, ok := subscribe[k]; !ok {
+				subscribe[k] = make([]*Quote, 0)
+			}
+			subscribe[k] = append(subscribe[k], &sub)
+		}
+	}
+	err = encoder.Encode(subscribe)
+	if err != nil {
+		qe.Logger.Error(err)
+	}
+}
+
+func nameToNumber(name string, num int) int {
+	name = strings.ToLower(name)
+	sum := 0
+	for _, char := range name {
+		sum += int(char - 'a' + 1)
+	}
+
+	return int(math.Abs(float64(sum))) % num
+}
 func NewBybitQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) *QuoteEngine[*bybit_ws.WsBybitClient] {
 	publisher_map := NewPublisherMap(cfg.Publisher)
-	engine := new(QuoteEngine[*bybit_ws.WsBybitClient])
-	engine.Scheduler = make(map[string]*time.Ticker)
-	engine.Logger = logger
-	engine.Ws = make(map[string]*bybit_ws.WsBybitClient)
-	engine.Api = bybit_http.NewSpotClient("", "")
-	engine.Cfg = cfg
+	// engine := new(QuoteEngine[*bybit_ws.WsBybitClient])
+	engine := &QuoteEngine[*bybit_ws.WsBybitClient]{
+		Logger: logger,
+		Ws:     make(map[string]*bybit_ws.WsBybitClient),
+		Api:    bybit_http.NewSpotClient("", ""),
+		Cfg:    cfg,
+		WsPool: make(map[string]*WsClient),
+	}
+	// engine.Scheduler = make(map[string]*time.Ticker)
 	for i := 0; i < cfg.WsPoolSize; i++ {
 		handle := WithBybitMessageHandler2(cfg, logger, publisher_map)
 		ws, err := bybit_ws.NewWsQuoteClient(cfg.HostType, handle)
@@ -242,14 +381,17 @@ func NewBybitQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) *Qu
 			logger.Error(err)
 			continue
 		}
-		engine.Ws[string(i)] = ws
+		engine.WsPool[strconv.FormatInt(int64(i), 10)] = &WsClient{
+			WsClient: ws,
+			Quotes:   make(map[string]Quote),
+		}
+		// engine.Ws[strconv.FormatInt(int64(i), 10)] = ws
 		ws.Logger = logger
 		ws.Connect()
 		go ws.StartLoop()
 	}
 	return engine
 }
-
 func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) any {
 	switch strings.ToUpper(cfg.Exchange) {
 	case "BYBIT":
@@ -259,13 +401,6 @@ func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) any {
 		return nil
 	}
 }
-
-func (qe *QuoteEngine[WS]) SetSubscribeInstruments() {
-	qe.SubscribeIns = qe.MatchFilter(qe.GetInstruments())
-	qe.SubscribeMap = NewSubscribeMap2(qe.SubscribeIns, qe.Cfg.HostType)
-	qe.Subscribes(qe.SubscribeMap)
-}
-
 func WithSubscribeFunc(startSignal chan struct{}, wsAgent IWsAgent, subscribeList []string) func() {
 	return func() {
 		for range startSignal {
@@ -275,13 +410,11 @@ func WithSubscribeFunc(startSignal chan struct{}, wsAgent IWsAgent, subscribeLis
 		}
 	}
 }
-
 func WithErrorHandler(logger *logrus.Logger) func(error) {
 	return func(err error) {
 		logger.Error(err)
 	}
 }
-
 func InitLogger(logger *logrus.Logger, config *configs.LogConfig) (err error) {
 	logger.SetReportCaller(config.ReportCaller)
 	writers := make(map[string]*rotatelogs.RotateLogs)
@@ -317,7 +450,6 @@ func InitLogger(logger *logrus.Logger, config *configs.LogConfig) (err error) {
 	logger.SetLevel(level)
 	return nil
 }
-
 func NewSubscribeMap(subscribes []string) map[string][]string {
 	sub_map := make(map[string][]string)
 	for _, sub := range subscribes {
@@ -330,7 +462,21 @@ func NewSubscribeMap(subscribes []string) map[string][]string {
 		}
 	}
 	return sub_map
+}
 
+func GetSubscribeTopics(subscribes map[string]*instrument, coin string, category string) []string {
+	topics := make([]string, 0)
+	if ins, ok := subscribes[coin]; ok {
+		switch category {
+		case "spot":
+			topics = append(topics, fmt.Sprintf("orderbook.50.%s", ins.Spot.Symbol))
+			topics = append(topics, fmt.Sprintf("tickers.%s", ins.Spot.Symbol))
+		case "future":
+			topics = append(topics, fmt.Sprintf("orderbook.50.%s", ins.Perp.Symbol))
+			topics = append(topics, fmt.Sprintf("tickers.%s", ins.Perp.Symbol))
+		}
+	}
+	return topics
 }
 func NewSubscribeMap2(subscribes map[string]*instrument, category string) map[string][]string {
 	sub_map := make(map[string][]string)
@@ -350,7 +496,6 @@ func NewSubscribeMap2(subscribes map[string]*instrument, category string) map[st
 	}
 	return sub_map
 }
-
 func NewPublisherMap(publishers []configs.PublisherConfig) map[string]*shm.Publisher {
 	pub_map := make(map[string]*shm.Publisher)
 	for _, pub := range publishers {
@@ -358,7 +503,6 @@ func NewPublisherMap(publishers []configs.PublisherConfig) map[string]*shm.Publi
 	}
 	return pub_map
 }
-
 func NewSubscriberMap(publishers []configs.PublisherConfig) map[string]*shm.Subscriber {
 	sub_map := make(map[string]*shm.Subscriber)
 	for _, pub := range publishers {

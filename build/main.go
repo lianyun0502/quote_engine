@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
-	"time"
+	// "time"
 
 	"github.com/lianyun0502/quote_engine"
 	"github.com/lianyun0502/quote_engine/configs"
 	"github.com/lianyun0502/quote_engine/data_storage"
+	"github.com/lianyun0502/quote_engine/server"
 	"github.com/sirupsen/logrus"
+
 )
 
 func main() {
@@ -24,7 +26,8 @@ func main() {
 	}
 	engine := quote_engine.NewBybitQuoteEngine(&config.Websocket[0], logger)
 	engine.SetSubscribeInstruments()
-	engine.AddScheduler("UpdateSubscribeInstruments", 5*time.Minute, engine.UpdateSubscribeMap)
+	server.NewQuoteServer(engine, config.GRPCServer.Host, config.GRPCServer.Port)
+	// engine.AddScheduler("UpdateSubscribeInstruments", 5*time.Minute, engine.UpdateSubscribeMap)
 	quote_engine.WaitForClose(logger, ctx)
 	cancel()
 }
