@@ -23,6 +23,7 @@ import (
 	"github.com/lianyun0502/shm"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
+	"github.com/puzpuzpuz/xsync/v3"
 )
 
 type IWsAgent interface {
@@ -56,7 +57,7 @@ type QuoteEngine[WS IWsAgent] struct {
 	SubscribeIns map[string]*instrument // map[Coin] instrument infomation
 	Scheduler    map[string]*time.Ticker
 	Cfg          *configs.WsClientConfig
-	WsPool       map[string]*WsClient
+	WsPool       *xsync.MapOf[string, *WsClient]
 }
 
 type instrument struct {
@@ -183,10 +184,17 @@ func (qe *QuoteEngine[WS]) UpdateSubscribeMap() {
 }
 
 func (qe *QuoteEngine[WS]) IsCoinInPool(coin string) (bool, *WsClient) {
-	for _, v := range qe.WsPool{
+	var ws *WsClient
+	f := func(k string, v *WsClient) bool {
 		if _, ok := v.Quotes[coin]; ok {
-			return true, v
+			ws = v
+			return false
 		}
+		return true
+	}
+	qe.WsPool.Range(f)
+	if ws  != nil {
+		return true, ws
 	}
 	return false, nil
 }
@@ -194,12 +202,13 @@ func (qe *QuoteEngine[WS]) IsCoinInPool(coin string) (bool, *WsClient) {
 func (qe *QuoteEngine[WS]) GetLeastLoadedWS() string {
 	minSubscriptions := int(^uint(0) >> 1) // Max int value
 	var wsID string
-	for id, ws := range qe.WsPool {
-		if len(ws.Quotes) < minSubscriptions {
-			minSubscriptions = len(ws.Quotes)
-			wsID = id
+	qe.WsPool.Range(func(k string, v *WsClient) bool {
+		if len(v.Quotes) < minSubscriptions {
+			minSubscriptions = len(v.Quotes)
+			wsID = k
 		}
-	}
+		return true
+	})
 	return wsID
 }
 
@@ -212,7 +221,8 @@ func (qe *QuoteEngine[WS]) SubscribeQuotes(coins []string) {
 		topics := GetSubscribeTopics(qe.SubscribeIns, coin, qe.Cfg.HostType)
 		fmt.Println(topics)
 		id := qe.GetLeastLoadedWS()
-		_, err := qe.WsPool[id].WsClient.Subscribe(topics)
+		ws, _ := qe.WsPool.Load(id)
+		_, err := ws.WsClient.Subscribe(topics)
 		if err != nil {
 			qe.Logger.Error(err)
 			continue
@@ -225,7 +235,7 @@ func (qe *QuoteEngine[WS]) SubscribeQuotes(coins []string) {
 			symbol = qe.SubscribeIns[coin].Perp.Symbol
 		}
 		// qe.Logger.Info(string(resp))
-		qe.WsPool[id].Quotes[coin] = Quote{
+		ws.Quotes[coin] = Quote{
 			Coin:   coin,
 			Symbol: symbol,
 			Topics: topics,
@@ -268,17 +278,19 @@ func (qe *QuoteEngine[WS]) Unsubscribes(sub map[string][]string) {
 }
 func (qe *QuoteEngine[WS]) GetSubscriptions() []string{
 	var subs []string
-	for _, v := range qe.WsPool {
+	qe.WsPool.Range(func(k string, v *WsClient) bool {
 		for _, sub := range v.Quotes {
 			subs = append(subs, sub.Coin)
 		}
-	}
+		return true
+	})
 	return subs
 }
 func (qe *QuoteEngine[WS]) SetSubscribeInstruments() {
+	fmt.Println("SetSubscribeInstruments")
 	qe.SubscribeIns = qe.GetInstruments()
-	subscribtions := qe.LoadSubscribes()
-	if subscribtions != nil{
+	subscribtions, err  := qe.LoadSubscribes()
+	if err == nil {
 		if len(subscribtions) > 0 {
 			qe.Logger.Info("Load subscribes from file")
 			for _, v := range subscribtions {
@@ -291,6 +303,8 @@ func (qe *QuoteEngine[WS]) SetSubscribeInstruments() {
 			}
 			return
 		}
+	}else{
+		qe.Logger.Warning(err)
 	}
 	insFisrt30 := qe.MatchFilter(qe.SubscribeIns)
 	for k := range insFisrt30 {
@@ -313,21 +327,19 @@ type Quote struct {
 	Topics []string `json:"topics"`
 }
 
-func (qe *QuoteEngine[WS]) LoadSubscribes() map[string][]*Quote {
+func (qe *QuoteEngine[WS]) LoadSubscribes() (map[string][]*Quote, error) {
 	file, err := os.OpenFile("subscribes.json", os.O_RDONLY, 0666)
 	if err != nil {
-		qe.Logger.Error(err)
-		return nil
+		return nil, err
 	}
 	defer file.Close()
 	decoder := json.NewDecoder(file)
 	quotes := make(map[string][]*Quote)
 	err = decoder.Decode(&quotes)
 	if err != nil {
-		qe.Logger.Error(err)
-		return nil
+		return nil, err
 	}
-	return quotes
+	return quotes, nil
 }
 
 func (qe *QuoteEngine[WS]) SaveSubscribes() {
@@ -339,14 +351,15 @@ func (qe *QuoteEngine[WS]) SaveSubscribes() {
 	defer file.Close()
 	encoder := json.NewEncoder(file)
 	subscribe := make(map[string][]*Quote)
-	for k, v := range qe.WsPool {
+	qe.WsPool.Range(func(k string, v *WsClient) bool {
 		for _, sub := range v.Quotes {
 			if _, ok := subscribe[k]; !ok {
 				subscribe[k] = make([]*Quote, 0)
 			}
 			subscribe[k] = append(subscribe[k], &sub)
 		}
-	}
+		return true
+	})
 	err = encoder.Encode(subscribe)
 	if err != nil {
 		qe.Logger.Error(err)
@@ -370,7 +383,7 @@ func NewBybitQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) *Qu
 		Ws:     make(map[string]*bybit_ws.WsBybitClient),
 		Api:    bybit_http.NewSpotClient("", ""),
 		Cfg:    cfg,
-		WsPool: make(map[string]*WsClient),
+		WsPool: xsync.NewMapOf[string, *WsClient](),
 	}
 	// engine.Scheduler = make(map[string]*time.Ticker)
 	for i := 0; i < cfg.WsPoolSize; i++ {
@@ -381,17 +394,45 @@ func NewBybitQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) *Qu
 			logger.Error(err)
 			continue
 		}
-		engine.WsPool[strconv.FormatInt(int64(i), 10)] = &WsClient{
+		WsClinet := &WsClient{
 			WsClient: ws,
 			Quotes:   make(map[string]Quote),
 		}
-		// engine.Ws[strconv.FormatInt(int64(i), 10)] = ws
+		engine.WsPool.Store(
+			strconv.FormatInt(int64(i), 10), 
+			WsClinet,
+		)
 		ws.Logger = logger
 		ws.Connect()
+		go WithResetWsFunc(WsClinet, engine.WsPool)()
 		go ws.StartLoop()
 	}
 	return engine
 }
+// func WithResetSubScribeFunc(qe IQuoteEngine) func() chan  {
+// 	resetCh := make(chan struct{})
+// 	go func () {
+// 		for range resetCh {
+// 			qe.SubscribeCoins(qe.GetSubscriptions())
+// 	return func() {
+// 		for range qe.DoneSignal {
+// 			qe.UpdateSubscribeMap()
+// 		}
+// 	}
+// }
+
+func WithResetWsFunc(ws *WsClient, wsPool *xsync.MapOf[string, *WsClient]) func() {
+	return func() {
+		for range ws.WsClient.StartSignal{
+			var subs []string
+			for _, quote := range ws.Quotes {
+				subs = append(subs, quote.Topics...)
+			}
+			ws.WsClient.Subscribe(subs)
+		}
+	}
+}
+
 func NewQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) any {
 	switch strings.ToUpper(cfg.Exchange) {
 	case "BYBIT":

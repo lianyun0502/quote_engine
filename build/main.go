@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
+	// "time"
+
 	// "time"
 
 	"github.com/lianyun0502/quote_engine"
@@ -9,7 +12,6 @@ import (
 	"github.com/lianyun0502/quote_engine/data_storage"
 	"github.com/lianyun0502/quote_engine/server"
 	"github.com/sirupsen/logrus"
-
 )
 
 func main() {
@@ -25,9 +27,14 @@ func main() {
 		datastorage.NewDataStorage(ctx, config, logger)
 	}
 	engine := quote_engine.NewBybitQuoteEngine(&config.Websocket[0], logger)
+	_ , err = server.NewQuoteServer(engine, config.GRPCServer.Host, config.GRPCServer.Port)
+	if err != nil {
+		logrus.Println(err)
+		return
+	}
+	fmt.Println("SetSubscribeInstruments")
+
 	engine.SetSubscribeInstruments()
-	server.NewQuoteServer(engine, config.GRPCServer.Host, config.GRPCServer.Port)
-	// engine.AddScheduler("UpdateSubscribeInstruments", 5*time.Minute, engine.UpdateSubscribeMap)
 	quote_engine.WaitForClose(logger, ctx)
 	cancel()
 }

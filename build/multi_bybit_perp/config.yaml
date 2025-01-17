@@ -23,7 +23,9 @@ Log:
 
 Data:
   save: false
-
+GRPCServer:
+  port: "1680"
+  host: "localhost"
 Websocket:
   - exchange: "bybit"
     url: "wss://stream.bybit.com/v5/public/linear"

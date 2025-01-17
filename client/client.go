@@ -2,7 +2,7 @@ package client
 
 import (
 	"fmt"
-	"io"
+	// "io"
 	"time"
 	"context"
 
@@ -30,22 +30,11 @@ func NewQuoteClient(host, port string) (*QuoteClient, error) {
 func (q *QuoteClient) ListQuotes() ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	stream, err := q.client.ListQuotes(ctx, &quote_proto.ListQuotesRequest{})
+	resp, err := q.client.ListQuotes(ctx, &quote_proto.ListQuotesRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list quotes: %v", err)
 	}
-	var quotes []string
-	for {
-		quote, err := stream.Recv()
-		if err != nil && err == io.EOF {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-		quotes = append(quotes, quote.Symbol)
-	}
-	return quotes, nil
+	return resp.Symbol, nil
 }
 
 func (q *QuoteClient) SubscribeCoin(quotes []string) error {
@@ -88,4 +77,39 @@ func (q *QuoteClient) UnsubscribeCoin(quotes []string) error {
 	}
 	return nil
 
+}
+
+
+func (q *QuoteClient) RegisterStrategy(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := q.client.RegisterStrategy(ctx, &quote_proto.RegisterStrategyRequest{ID: id})
+	if err != nil {
+		return fmt.Errorf("failed to register strategy: %v", err)
+	}
+	return nil
+}
+
+func (q *QuoteClient) UnregisterStrategy(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := q.client.UnregisterStrategy(ctx, &quote_proto.RegisterStrategyRequest{ID: id})
+	if err != nil {
+		return fmt.Errorf("failed to unregister strategy: %v", err)
+	}
+	return nil
+}
+
+func (q *QuoteClient) ListRegisteredStrategies() ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	resp, err := q.client.ListRegisteredStrategies(ctx, &quote_proto.ListRegisteredStrategiesRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list registered strategies: %v", err)
+	}
+	var strategies []string
+	for _, strategy := range resp.Strategy{
+		strategies = append(strategies, strategy.GetID())
+	}
+	return strategies, nil
 }

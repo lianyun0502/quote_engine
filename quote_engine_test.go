@@ -1,11 +1,11 @@
 package quote_engine_test
 
 import (
-	"testing"
 	"context"
+	"testing"
 
-	"github.com/lianyun0502/quote_engine/configs"
 	"github.com/lianyun0502/quote_engine"
+	"github.com/lianyun0502/quote_engine/configs"
 	"github.com/lianyun0502/quote_engine/server"
 	"github.com/sirupsen/logrus"
 )
@@ -21,7 +21,6 @@ func TestByBitQuoteEngine(t *testing.T){
 	quote_engine.InitLogger(logger, &cfg.Log)
 	engine := quote_engine.NewBybitQuoteEngine(&cfg.Websocket[0], logger)
 	engine.SetSubscribeInstruments()
-	server.NewQuoteServer(engine, "localhost", "6666")
-	engine.LoadSubscribes()
+	server.NewQuoteServer(engine, "localhost", "7777")
 	quote_engine.WaitForClose(logger, ctx)
 }

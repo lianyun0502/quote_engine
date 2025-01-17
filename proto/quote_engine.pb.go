@@ -24,6 +24,45 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+type SubscribeResquest struct {
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SubscribeResquest) Reset()         { *m = SubscribeResquest{} }
+func (m *SubscribeResquest) String() string { return proto.CompactTextString(m) }
+func (*SubscribeResquest) ProtoMessage()    {}
+func (*SubscribeResquest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4b76c75eef5fc675, []int{0}
+}
+
+func (m *SubscribeResquest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SubscribeResquest.Unmarshal(m, b)
+}
+func (m *SubscribeResquest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SubscribeResquest.Marshal(b, m, deterministic)
+}
+func (m *SubscribeResquest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SubscribeResquest.Merge(m, src)
+}
+func (m *SubscribeResquest) XXX_Size() int {
+	return xxx_messageInfo_SubscribeResquest.Size(m)
+}
+func (m *SubscribeResquest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SubscribeResquest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SubscribeResquest proto.InternalMessageInfo
+
+func (m *SubscribeResquest) GetID() string {
+	if m != nil {
+		return m.ID
+	}
+	return ""
+}
+
 type SubscribeResponse struct {
 	Result               int64    `protobuf:"varint,1,opt,name=result,proto3" json:"result,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -35,7 +74,7 @@ func (m *SubscribeResponse) Reset()         { *m = SubscribeResponse{} }
 func (m *SubscribeResponse) String() string { return proto.CompactTextString(m) }
 func (*SubscribeResponse) ProtoMessage()    {}
 func (*SubscribeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4b76c75eef5fc675, []int{0}
+	return fileDescriptor_4b76c75eef5fc675, []int{1}
 }
 
 func (m *SubscribeResponse) XXX_Unmarshal(b []byte) error {
@@ -63,6 +102,45 @@ func (m *SubscribeResponse) GetResult() int64 {
 	return 0
 }
 
+type UnsubscribeResquest struct {
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UnsubscribeResquest) Reset()         { *m = UnsubscribeResquest{} }
+func (m *UnsubscribeResquest) String() string { return proto.CompactTextString(m) }
+func (*UnsubscribeResquest) ProtoMessage()    {}
+func (*UnsubscribeResquest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4b76c75eef5fc675, []int{2}
+}
+
+func (m *UnsubscribeResquest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UnsubscribeResquest.Unmarshal(m, b)
+}
+func (m *UnsubscribeResquest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UnsubscribeResquest.Marshal(b, m, deterministic)
+}
+func (m *UnsubscribeResquest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UnsubscribeResquest.Merge(m, src)
+}
+func (m *UnsubscribeResquest) XXX_Size() int {
+	return xxx_messageInfo_UnsubscribeResquest.Size(m)
+}
+func (m *UnsubscribeResquest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UnsubscribeResquest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UnsubscribeResquest proto.InternalMessageInfo
+
+func (m *UnsubscribeResquest) GetID() string {
+	if m != nil {
+		return m.ID
+	}
+	return ""
+}
+
 type UnsubscribeResponse struct {
 	Result               int64    `protobuf:"varint,1,opt,name=result,proto3" json:"result,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -74,7 +152,7 @@ func (m *UnsubscribeResponse) Reset()         { *m = UnsubscribeResponse{} }
 func (m *UnsubscribeResponse) String() string { return proto.CompactTextString(m) }
 func (*UnsubscribeResponse) ProtoMessage()    {}
 func (*UnsubscribeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4b76c75eef5fc675, []int{1}
+	return fileDescriptor_4b76c75eef5fc675, []int{3}
 }
 
 func (m *UnsubscribeResponse) XXX_Unmarshal(b []byte) error {
@@ -103,7 +181,8 @@ func (m *UnsubscribeResponse) GetResult() int64 {
 }
 
 type Subscribe struct {
-	Symbol               string   `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	Symbol               string   `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -113,7 +192,7 @@ func (m *Subscribe) Reset()         { *m = Subscribe{} }
 func (m *Subscribe) String() string { return proto.CompactTextString(m) }
 func (*Subscribe) ProtoMessage()    {}
 func (*Subscribe) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4b76c75eef5fc675, []int{2}
+	return fileDescriptor_4b76c75eef5fc675, []int{4}
 }
 
 func (m *Subscribe) XXX_Unmarshal(b []byte) error {
@@ -134,6 +213,13 @@ func (m *Subscribe) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Subscribe proto.InternalMessageInfo
 
+func (m *Subscribe) GetID() string {
+	if m != nil {
+		return m.ID
+	}
+	return ""
+}
+
 func (m *Subscribe) GetSymbol() string {
 	if m != nil {
 		return m.Symbol
@@ -142,7 +228,8 @@ func (m *Subscribe) GetSymbol() string {
 }
 
 type Unsubscribe struct {
-	Symbol               string   `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	Symbol               string   `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -152,7 +239,7 @@ func (m *Unsubscribe) Reset()         { *m = Unsubscribe{} }
 func (m *Unsubscribe) String() string { return proto.CompactTextString(m) }
 func (*Unsubscribe) ProtoMessage()    {}
 func (*Unsubscribe) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4b76c75eef5fc675, []int{3}
+	return fileDescriptor_4b76c75eef5fc675, []int{5}
 }
 
 func (m *Unsubscribe) XXX_Unmarshal(b []byte) error {
@@ -173,6 +260,13 @@ func (m *Unsubscribe) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Unsubscribe proto.InternalMessageInfo
 
+func (m *Unsubscribe) GetID() string {
+	if m != nil {
+		return m.ID
+	}
+	return ""
+}
+
 func (m *Unsubscribe) GetSymbol() string {
 	if m != nil {
 		return m.Symbol
@@ -190,7 +284,7 @@ func (m *ListQuotesRequest) Reset()         { *m = ListQuotesRequest{} }
 func (m *ListQuotesRequest) String() string { return proto.CompactTextString(m) }
 func (*ListQuotesRequest) ProtoMessage()    {}
 func (*ListQuotesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4b76c75eef5fc675, []int{4}
+	return fileDescriptor_4b76c75eef5fc675, []int{6}
 }
 
 func (m *ListQuotesRequest) XXX_Unmarshal(b []byte) error {
@@ -211,12 +305,278 @@ func (m *ListQuotesRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ListQuotesRequest proto.InternalMessageInfo
 
+type ListQuotesResponse struct {
+	Symbol               []string `protobuf:"bytes,1,rep,name=symbol,proto3" json:"symbol,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ListQuotesResponse) Reset()         { *m = ListQuotesResponse{} }
+func (m *ListQuotesResponse) String() string { return proto.CompactTextString(m) }
+func (*ListQuotesResponse) ProtoMessage()    {}
+func (*ListQuotesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4b76c75eef5fc675, []int{7}
+}
+
+func (m *ListQuotesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListQuotesResponse.Unmarshal(m, b)
+}
+func (m *ListQuotesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListQuotesResponse.Marshal(b, m, deterministic)
+}
+func (m *ListQuotesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListQuotesResponse.Merge(m, src)
+}
+func (m *ListQuotesResponse) XXX_Size() int {
+	return xxx_messageInfo_ListQuotesResponse.Size(m)
+}
+func (m *ListQuotesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListQuotesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListQuotesResponse proto.InternalMessageInfo
+
+func (m *ListQuotesResponse) GetSymbol() []string {
+	if m != nil {
+		return m.Symbol
+	}
+	return nil
+}
+
+type ListRegisteredStrategiesRequest struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ListRegisteredStrategiesRequest) Reset()         { *m = ListRegisteredStrategiesRequest{} }
+func (m *ListRegisteredStrategiesRequest) String() string { return proto.CompactTextString(m) }
+func (*ListRegisteredStrategiesRequest) ProtoMessage()    {}
+func (*ListRegisteredStrategiesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4b76c75eef5fc675, []int{8}
+}
+
+func (m *ListRegisteredStrategiesRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListRegisteredStrategiesRequest.Unmarshal(m, b)
+}
+func (m *ListRegisteredStrategiesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListRegisteredStrategiesRequest.Marshal(b, m, deterministic)
+}
+func (m *ListRegisteredStrategiesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListRegisteredStrategiesRequest.Merge(m, src)
+}
+func (m *ListRegisteredStrategiesRequest) XXX_Size() int {
+	return xxx_messageInfo_ListRegisteredStrategiesRequest.Size(m)
+}
+func (m *ListRegisteredStrategiesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListRegisteredStrategiesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListRegisteredStrategiesRequest proto.InternalMessageInfo
+
+type ListRegisteredStrategiesResponse struct {
+	Strategy             []*Strategy `protobuf:"bytes,1,rep,name=strategy,proto3" json:"strategy,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
+}
+
+func (m *ListRegisteredStrategiesResponse) Reset()         { *m = ListRegisteredStrategiesResponse{} }
+func (m *ListRegisteredStrategiesResponse) String() string { return proto.CompactTextString(m) }
+func (*ListRegisteredStrategiesResponse) ProtoMessage()    {}
+func (*ListRegisteredStrategiesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4b76c75eef5fc675, []int{9}
+}
+
+func (m *ListRegisteredStrategiesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListRegisteredStrategiesResponse.Unmarshal(m, b)
+}
+func (m *ListRegisteredStrategiesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListRegisteredStrategiesResponse.Marshal(b, m, deterministic)
+}
+func (m *ListRegisteredStrategiesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListRegisteredStrategiesResponse.Merge(m, src)
+}
+func (m *ListRegisteredStrategiesResponse) XXX_Size() int {
+	return xxx_messageInfo_ListRegisteredStrategiesResponse.Size(m)
+}
+func (m *ListRegisteredStrategiesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListRegisteredStrategiesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListRegisteredStrategiesResponse proto.InternalMessageInfo
+
+func (m *ListRegisteredStrategiesResponse) GetStrategy() []*Strategy {
+	if m != nil {
+		return m.Strategy
+	}
+	return nil
+}
+
+type Strategy struct {
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description          string   `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Subscribe            []string `protobuf:"bytes,4,rep,name=subscribe,proto3" json:"subscribe,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Strategy) Reset()         { *m = Strategy{} }
+func (m *Strategy) String() string { return proto.CompactTextString(m) }
+func (*Strategy) ProtoMessage()    {}
+func (*Strategy) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4b76c75eef5fc675, []int{10}
+}
+
+func (m *Strategy) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Strategy.Unmarshal(m, b)
+}
+func (m *Strategy) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Strategy.Marshal(b, m, deterministic)
+}
+func (m *Strategy) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Strategy.Merge(m, src)
+}
+func (m *Strategy) XXX_Size() int {
+	return xxx_messageInfo_Strategy.Size(m)
+}
+func (m *Strategy) XXX_DiscardUnknown() {
+	xxx_messageInfo_Strategy.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Strategy proto.InternalMessageInfo
+
+func (m *Strategy) GetID() string {
+	if m != nil {
+		return m.ID
+	}
+	return ""
+}
+
+func (m *Strategy) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *Strategy) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *Strategy) GetSubscribe() []string {
+	if m != nil {
+		return m.Subscribe
+	}
+	return nil
+}
+
+type RegisterStrategyRequest struct {
+	ID                   string   `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RegisterStrategyRequest) Reset()         { *m = RegisterStrategyRequest{} }
+func (m *RegisterStrategyRequest) String() string { return proto.CompactTextString(m) }
+func (*RegisterStrategyRequest) ProtoMessage()    {}
+func (*RegisterStrategyRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4b76c75eef5fc675, []int{11}
+}
+
+func (m *RegisterStrategyRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RegisterStrategyRequest.Unmarshal(m, b)
+}
+func (m *RegisterStrategyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RegisterStrategyRequest.Marshal(b, m, deterministic)
+}
+func (m *RegisterStrategyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisterStrategyRequest.Merge(m, src)
+}
+func (m *RegisterStrategyRequest) XXX_Size() int {
+	return xxx_messageInfo_RegisterStrategyRequest.Size(m)
+}
+func (m *RegisterStrategyRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisterStrategyRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RegisterStrategyRequest proto.InternalMessageInfo
+
+func (m *RegisterStrategyRequest) GetID() string {
+	if m != nil {
+		return m.ID
+	}
+	return ""
+}
+
+func (m *RegisterStrategyRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+type RegisterStrategyResponse struct {
+	Result               int64    `protobuf:"varint,1,opt,name=result,proto3" json:"result,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RegisterStrategyResponse) Reset()         { *m = RegisterStrategyResponse{} }
+func (m *RegisterStrategyResponse) String() string { return proto.CompactTextString(m) }
+func (*RegisterStrategyResponse) ProtoMessage()    {}
+func (*RegisterStrategyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4b76c75eef5fc675, []int{12}
+}
+
+func (m *RegisterStrategyResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RegisterStrategyResponse.Unmarshal(m, b)
+}
+func (m *RegisterStrategyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RegisterStrategyResponse.Marshal(b, m, deterministic)
+}
+func (m *RegisterStrategyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisterStrategyResponse.Merge(m, src)
+}
+func (m *RegisterStrategyResponse) XXX_Size() int {
+	return xxx_messageInfo_RegisterStrategyResponse.Size(m)
+}
+func (m *RegisterStrategyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisterStrategyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RegisterStrategyResponse proto.InternalMessageInfo
+
+func (m *RegisterStrategyResponse) GetResult() int64 {
+	if m != nil {
+		return m.Result
+	}
+	return 0
+}
+
 func init() {
+	proto.RegisterType((*SubscribeResquest)(nil), "quote_proto.SubscribeResquest")
 	proto.RegisterType((*SubscribeResponse)(nil), "quote_proto.SubscribeResponse")
+	proto.RegisterType((*UnsubscribeResquest)(nil), "quote_proto.UnsubscribeResquest")
 	proto.RegisterType((*UnsubscribeResponse)(nil), "quote_proto.UnsubscribeResponse")
 	proto.RegisterType((*Subscribe)(nil), "quote_proto.Subscribe")
 	proto.RegisterType((*Unsubscribe)(nil), "quote_proto.Unsubscribe")
 	proto.RegisterType((*ListQuotesRequest)(nil), "quote_proto.ListQuotesRequest")
+	proto.RegisterType((*ListQuotesResponse)(nil), "quote_proto.ListQuotesResponse")
+	proto.RegisterType((*ListRegisteredStrategiesRequest)(nil), "quote_proto.ListRegisteredStrategiesRequest")
+	proto.RegisterType((*ListRegisteredStrategiesResponse)(nil), "quote_proto.ListRegisteredStrategiesResponse")
+	proto.RegisterType((*Strategy)(nil), "quote_proto.Strategy")
+	proto.RegisterType((*RegisterStrategyRequest)(nil), "quote_proto.RegisterStrategyRequest")
+	proto.RegisterType((*RegisterStrategyResponse)(nil), "quote_proto.RegisterStrategyResponse")
 }
 
 func init() {
@@ -224,23 +584,35 @@ func init() {
 }
 
 var fileDescriptor_4b76c75eef5fc675 = []byte{
-	// 243 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x28, 0x28, 0xca, 0x2f,
-	0xc9, 0xd7, 0x2f, 0x2c, 0xcd, 0x2f, 0x49, 0x8d, 0x4f, 0xcd, 0x4b, 0xcf, 0xcc, 0x4b, 0xd5, 0x03,
-	0x0b, 0x09, 0x71, 0x43, 0xc4, 0xc0, 0x1c, 0x25, 0x6d, 0x2e, 0xc1, 0xe0, 0xd2, 0xa4, 0xe2, 0xe4,
-	0xa2, 0xcc, 0xa4, 0xd4, 0xa0, 0xd4, 0xe2, 0x82, 0xfc, 0xbc, 0xe2, 0x54, 0x21, 0x31, 0x2e, 0xb6,
-	0xa2, 0xd4, 0xe2, 0xd2, 0x9c, 0x12, 0x09, 0x46, 0x05, 0x46, 0x0d, 0xe6, 0x20, 0x28, 0x4f, 0x49,
-	0x97, 0x4b, 0x38, 0x34, 0xaf, 0x98, 0x68, 0xe5, 0xca, 0x5c, 0x9c, 0x70, 0xb3, 0x41, 0x8a, 0x8a,
-	0x2b, 0x73, 0x93, 0xf2, 0x73, 0xc0, 0x8a, 0x38, 0x83, 0xa0, 0x3c, 0x25, 0x55, 0x2e, 0x6e, 0x24,
-	0x33, 0x71, 0x2a, 0x13, 0xe6, 0x12, 0xf4, 0xc9, 0x2c, 0x2e, 0x09, 0x04, 0x39, 0xbd, 0x38, 0x28,
-	0xb5, 0xb0, 0x34, 0xb5, 0xb8, 0xc4, 0xe8, 0x07, 0x23, 0x17, 0x0f, 0x58, 0x24, 0x38, 0xb5, 0xa8,
-	0x2c, 0x33, 0x39, 0x55, 0xc8, 0x83, 0x8b, 0x0b, 0xa1, 0x4a, 0x48, 0x4e, 0x0f, 0xc9, 0xa7, 0x7a,
-	0x18, 0xda, 0xa5, 0xc4, 0x50, 0xe4, 0xe1, 0x4e, 0x55, 0x62, 0x30, 0x60, 0x14, 0xf2, 0xe6, 0xe2,
-	0x85, 0x0b, 0x38, 0xe7, 0x67, 0xe6, 0x09, 0xe1, 0x50, 0x2c, 0x25, 0x87, 0x5d, 0x1c, 0x16, 0x38,
-	0x4a, 0x0c, 0x1a, 0x8c, 0x42, 0x81, 0x5c, 0xfc, 0x48, 0x7e, 0x04, 0x1b, 0x27, 0x81, 0xa2, 0x0d,
-	0x49, 0x56, 0x4a, 0x01, 0x97, 0x0c, 0xb2, 0x91, 0x4e, 0xc2, 0x51, 0x82, 0xc8, 0x11, 0x0c, 0x66,
-	0x27, 0xb1, 0x81, 0x29, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0xbe, 0xf2, 0x5b, 0x49, 0xfc,
-	0x01, 0x00, 0x00,
+	// 438 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x54, 0x4d, 0xab, 0xda, 0x40,
+	0x14, 0x6d, 0x54, 0x1e, 0xcf, 0x9b, 0x7e, 0x39, 0xd2, 0xd7, 0x21, 0x94, 0xf7, 0xd2, 0x69, 0x1f,
+	0x08, 0x55, 0x4b, 0x95, 0x2e, 0xbb, 0x69, 0xdd, 0x48, 0x0b, 0xc5, 0x88, 0x9b, 0x6e, 0x8a, 0xd1,
+	0x8b, 0x0c, 0xe8, 0x44, 0x33, 0x93, 0x42, 0xfe, 0x5e, 0x7f, 0x59, 0xc9, 0x18, 0x93, 0x89, 0x31,
+	0xea, 0xa6, 0x2b, 0x33, 0xe7, 0x9e, 0x7b, 0xee, 0xc7, 0x99, 0x11, 0xe8, 0x36, 0x0c, 0x54, 0xf0,
+	0x71, 0x17, 0x05, 0x0a, 0x7f, 0xa3, 0x58, 0x71, 0x81, 0x7d, 0x0d, 0x11, 0x7b, 0x8f, 0xe9, 0x03,
+	0x7b, 0x07, 0xad, 0x69, 0xe4, 0xcb, 0x45, 0xc8, 0x7d, 0xf4, 0x50, 0xee, 0x22, 0x94, 0x8a, 0x3c,
+	0x87, 0xda, 0x78, 0x44, 0x2d, 0xd7, 0xea, 0x34, 0xbd, 0xda, 0x78, 0xc4, 0x3e, 0x14, 0x49, 0xdb,
+	0x40, 0x48, 0x24, 0x77, 0x70, 0x13, 0xa2, 0x8c, 0xd6, 0x4a, 0x13, 0xeb, 0x5e, 0x7a, 0x62, 0x8f,
+	0xd0, 0x9e, 0x09, 0x79, 0x51, 0xb3, 0x77, 0x4c, 0x3b, 0xaf, 0x3a, 0x84, 0x66, 0xd6, 0xc2, 0xb1,
+	0x56, 0x92, 0x24, 0xe3, 0x8d, 0x1f, 0xac, 0x69, 0x4d, 0x63, 0xe9, 0x89, 0x7d, 0x06, 0xdb, 0xa8,
+	0x71, 0x75, 0x5a, 0x1b, 0x5a, 0x3f, 0xb8, 0x54, 0x93, 0x64, 0x4d, 0xd2, 0x43, 0xdd, 0x3f, 0xeb,
+	0x02, 0x31, 0xc1, 0xbc, 0xdd, 0x54, 0xc2, 0x72, 0xeb, 0x86, 0xc4, 0x5b, 0x78, 0x48, 0xd8, 0x1e,
+	0xae, 0xb8, 0x54, 0x18, 0xe2, 0x72, 0xaa, 0xc2, 0xb9, 0xc2, 0x15, 0xcf, 0x05, 0x67, 0xe0, 0x56,
+	0x53, 0x52, 0xf9, 0x4f, 0x70, 0x2b, 0xf7, 0x68, 0xac, 0x0b, 0xd8, 0x83, 0x57, 0x7d, 0xc3, 0xbd,
+	0x7e, 0x9a, 0x12, 0x7b, 0x19, 0x8d, 0x09, 0xb8, 0x3d, 0xa0, 0xa5, 0x81, 0x09, 0x34, 0xc4, 0x7c,
+	0x83, 0xe9, 0xb8, 0xfa, 0x9b, 0xb8, 0x60, 0x2f, 0x31, 0x59, 0xd0, 0x56, 0xf1, 0x40, 0xd0, 0xba,
+	0x0e, 0x99, 0x10, 0x79, 0x03, 0xcd, 0x6c, 0x87, 0xb4, 0xa1, 0xc7, 0xcc, 0x01, 0xf6, 0x05, 0x5e,
+	0x1f, 0x46, 0xc8, 0xba, 0xc1, 0x93, 0x96, 0x9f, 0x2a, 0xcf, 0x06, 0x40, 0xcb, 0xe9, 0xe7, 0xef,
+	0xc2, 0xe0, 0x6f, 0x03, 0x9e, 0x6a, 0x1f, 0xa6, 0x18, 0xfe, 0xe1, 0x0b, 0x24, 0x3f, 0x01, 0x72,
+	0x6f, 0xc8, 0x7d, 0x61, 0x45, 0x25, 0x27, 0x9d, 0x87, 0xca, 0xf8, 0xbe, 0x2e, 0x7b, 0x42, 0x62,
+	0xa0, 0x55, 0xde, 0x90, 0x6e, 0x29, 0xfd, 0x8c, 0xcb, 0x4e, 0xef, 0x4a, 0x76, 0x56, 0x7a, 0x0e,
+	0x2f, 0x8f, 0x17, 0x42, 0xde, 0x17, 0x44, 0x2a, 0xd6, 0xed, 0x3c, 0x5e, 0x60, 0x65, 0x25, 0x16,
+	0x40, 0x66, 0x22, 0xfc, 0xcf, 0x45, 0xbe, 0xc3, 0xb3, 0xec, 0xc1, 0x7e, 0x0b, 0xb8, 0x20, 0x77,
+	0xc5, 0x9b, 0x7b, 0x88, 0x39, 0xf7, 0xa7, 0xf1, 0x5c, 0xaa, 0x63, 0x91, 0x09, 0xbc, 0x30, 0x1e,
+	0xb2, 0x96, 0xa3, 0x85, 0x34, 0x23, 0xea, 0xb8, 0x55, 0x11, 0x53, 0xf2, 0x6b, 0xfb, 0x57, 0xcb,
+	0xfc, 0x87, 0xd4, 0xdf, 0xfe, 0x8d, 0xfe, 0x19, 0xfe, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x58, 0x33,
+	0xc6, 0xd6, 0x3d, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -255,7 +627,10 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QuoteServiceClient interface {
-	ListQuotes(ctx context.Context, in *ListQuotesRequest, opts ...grpc.CallOption) (QuoteService_ListQuotesClient, error)
+	ListQuotes(ctx context.Context, in *ListQuotesRequest, opts ...grpc.CallOption) (*ListQuotesResponse, error)
+	ListRegisteredStrategies(ctx context.Context, in *ListRegisteredStrategiesRequest, opts ...grpc.CallOption) (*ListRegisteredStrategiesResponse, error)
+	RegisterStrategy(ctx context.Context, in *RegisterStrategyRequest, opts ...grpc.CallOption) (*RegisterStrategyResponse, error)
+	UnregisterStrategy(ctx context.Context, in *RegisterStrategyRequest, opts ...grpc.CallOption) (*RegisterStrategyResponse, error)
 	SubscribeCoin(ctx context.Context, opts ...grpc.CallOption) (QuoteService_SubscribeCoinClient, error)
 	UnsubscribeCoin(ctx context.Context, opts ...grpc.CallOption) (QuoteService_UnsubscribeCoinClient, error)
 }
@@ -268,40 +643,44 @@ func NewQuoteServiceClient(cc grpc.ClientConnInterface) QuoteServiceClient {
 	return &quoteServiceClient{cc}
 }
 
-func (c *quoteServiceClient) ListQuotes(ctx context.Context, in *ListQuotesRequest, opts ...grpc.CallOption) (QuoteService_ListQuotesClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_QuoteService_serviceDesc.Streams[0], "/quote_proto.QuoteService/ListQuotes", opts...)
+func (c *quoteServiceClient) ListQuotes(ctx context.Context, in *ListQuotesRequest, opts ...grpc.CallOption) (*ListQuotesResponse, error) {
+	out := new(ListQuotesResponse)
+	err := c.cc.Invoke(ctx, "/quote_proto.QuoteService/ListQuotes", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &quoteServiceListQuotesClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
+	return out, nil
 }
 
-type QuoteService_ListQuotesClient interface {
-	Recv() (*Subscribe, error)
-	grpc.ClientStream
-}
-
-type quoteServiceListQuotesClient struct {
-	grpc.ClientStream
-}
-
-func (x *quoteServiceListQuotesClient) Recv() (*Subscribe, error) {
-	m := new(Subscribe)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
+func (c *quoteServiceClient) ListRegisteredStrategies(ctx context.Context, in *ListRegisteredStrategiesRequest, opts ...grpc.CallOption) (*ListRegisteredStrategiesResponse, error) {
+	out := new(ListRegisteredStrategiesResponse)
+	err := c.cc.Invoke(ctx, "/quote_proto.QuoteService/ListRegisteredStrategies", in, out, opts...)
+	if err != nil {
 		return nil, err
 	}
-	return m, nil
+	return out, nil
+}
+
+func (c *quoteServiceClient) RegisterStrategy(ctx context.Context, in *RegisterStrategyRequest, opts ...grpc.CallOption) (*RegisterStrategyResponse, error) {
+	out := new(RegisterStrategyResponse)
+	err := c.cc.Invoke(ctx, "/quote_proto.QuoteService/RegisterStrategy", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *quoteServiceClient) UnregisterStrategy(ctx context.Context, in *RegisterStrategyRequest, opts ...grpc.CallOption) (*RegisterStrategyResponse, error) {
+	out := new(RegisterStrategyResponse)
+	err := c.cc.Invoke(ctx, "/quote_proto.QuoteService/UnregisterStrategy", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *quoteServiceClient) SubscribeCoin(ctx context.Context, opts ...grpc.CallOption) (QuoteService_SubscribeCoinClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_QuoteService_serviceDesc.Streams[1], "/quote_proto.QuoteService/SubscribeCoin", opts...)
+	stream, err := c.cc.NewStream(ctx, &_QuoteService_serviceDesc.Streams[0], "/quote_proto.QuoteService/SubscribeCoin", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -335,7 +714,7 @@ func (x *quoteServiceSubscribeCoinClient) CloseAndRecv() (*SubscribeResponse, er
 }
 
 func (c *quoteServiceClient) UnsubscribeCoin(ctx context.Context, opts ...grpc.CallOption) (QuoteService_UnsubscribeCoinClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_QuoteService_serviceDesc.Streams[2], "/quote_proto.QuoteService/UnsubscribeCoin", opts...)
+	stream, err := c.cc.NewStream(ctx, &_QuoteService_serviceDesc.Streams[1], "/quote_proto.QuoteService/UnsubscribeCoin", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -370,7 +749,10 @@ func (x *quoteServiceUnsubscribeCoinClient) CloseAndRecv() (*UnsubscribeResponse
 
 // QuoteServiceServer is the server API for QuoteService service.
 type QuoteServiceServer interface {
-	ListQuotes(*ListQuotesRequest, QuoteService_ListQuotesServer) error
+	ListQuotes(context.Context, *ListQuotesRequest) (*ListQuotesResponse, error)
+	ListRegisteredStrategies(context.Context, *ListRegisteredStrategiesRequest) (*ListRegisteredStrategiesResponse, error)
+	RegisterStrategy(context.Context, *RegisterStrategyRequest) (*RegisterStrategyResponse, error)
+	UnregisterStrategy(context.Context, *RegisterStrategyRequest) (*RegisterStrategyResponse, error)
 	SubscribeCoin(QuoteService_SubscribeCoinServer) error
 	UnsubscribeCoin(QuoteService_UnsubscribeCoinServer) error
 }
@@ -379,8 +761,17 @@ type QuoteServiceServer interface {
 type UnimplementedQuoteServiceServer struct {
 }
 
-func (*UnimplementedQuoteServiceServer) ListQuotes(req *ListQuotesRequest, srv QuoteService_ListQuotesServer) error {
-	return status.Errorf(codes.Unimplemented, "method ListQuotes not implemented")
+func (*UnimplementedQuoteServiceServer) ListQuotes(ctx context.Context, req *ListQuotesRequest) (*ListQuotesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListQuotes not implemented")
+}
+func (*UnimplementedQuoteServiceServer) ListRegisteredStrategies(ctx context.Context, req *ListRegisteredStrategiesRequest) (*ListRegisteredStrategiesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRegisteredStrategies not implemented")
+}
+func (*UnimplementedQuoteServiceServer) RegisterStrategy(ctx context.Context, req *RegisterStrategyRequest) (*RegisterStrategyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterStrategy not implemented")
+}
+func (*UnimplementedQuoteServiceServer) UnregisterStrategy(ctx context.Context, req *RegisterStrategyRequest) (*RegisterStrategyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnregisterStrategy not implemented")
 }
 func (*UnimplementedQuoteServiceServer) SubscribeCoin(srv QuoteService_SubscribeCoinServer) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeCoin not implemented")
@@ -393,25 +784,76 @@ func RegisterQuoteServiceServer(s *grpc.Server, srv QuoteServiceServer) {
 	s.RegisterService(&_QuoteService_serviceDesc, srv)
 }
 
-func _QuoteService_ListQuotes_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ListQuotesRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _QuoteService_ListQuotes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListQuotesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(QuoteServiceServer).ListQuotes(m, &quoteServiceListQuotesServer{stream})
+	if interceptor == nil {
+		return srv.(QuoteServiceServer).ListQuotes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/quote_proto.QuoteService/ListQuotes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuoteServiceServer).ListQuotes(ctx, req.(*ListQuotesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
-type QuoteService_ListQuotesServer interface {
-	Send(*Subscribe) error
-	grpc.ServerStream
+func _QuoteService_ListRegisteredStrategies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRegisteredStrategiesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuoteServiceServer).ListRegisteredStrategies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/quote_proto.QuoteService/ListRegisteredStrategies",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuoteServiceServer).ListRegisteredStrategies(ctx, req.(*ListRegisteredStrategiesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
-type quoteServiceListQuotesServer struct {
-	grpc.ServerStream
+func _QuoteService_RegisterStrategy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterStrategyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuoteServiceServer).RegisterStrategy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/quote_proto.QuoteService/RegisterStrategy",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuoteServiceServer).RegisterStrategy(ctx, req.(*RegisterStrategyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
-func (x *quoteServiceListQuotesServer) Send(m *Subscribe) error {
-	return x.ServerStream.SendMsg(m)
+func _QuoteService_UnregisterStrategy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterStrategyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuoteServiceServer).UnregisterStrategy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/quote_proto.QuoteService/UnregisterStrategy",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuoteServiceServer).UnregisterStrategy(ctx, req.(*RegisterStrategyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _QuoteService_SubscribeCoin_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -469,13 +911,25 @@ func (x *quoteServiceUnsubscribeCoinServer) Recv() (*Unsubscribe, error) {
 var _QuoteService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "quote_proto.QuoteService",
 	HandlerType: (*QuoteServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams: []grpc.StreamDesc{
+	Methods: []grpc.MethodDesc{
 		{
-			StreamName:    "ListQuotes",
-			Handler:       _QuoteService_ListQuotes_Handler,
-			ServerStreams: true,
+			MethodName: "ListQuotes",
+			Handler:    _QuoteService_ListQuotes_Handler,
 		},
+		{
+			MethodName: "ListRegisteredStrategies",
+			Handler:    _QuoteService_ListRegisteredStrategies_Handler,
+		},
+		{
+			MethodName: "RegisterStrategy",
+			Handler:    _QuoteService_RegisterStrategy_Handler,
+		},
+		{
+			MethodName: "UnregisterStrategy",
+			Handler:    _QuoteService_UnregisterStrategy_Handler,
+		},
+	},
+	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "SubscribeCoin",
 			Handler:       _QuoteService_SubscribeCoin_Handler,

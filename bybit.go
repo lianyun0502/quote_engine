@@ -12,6 +12,7 @@ import (
 	"github.com/valyala/fastjson"
 )
 
+
 type IWriter interface {
 	Write([]byte)
 }

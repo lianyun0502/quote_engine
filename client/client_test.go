@@ -8,7 +8,7 @@ import (
 )
 
 func TestQuoteClient(t *testing.T){
-	c, err := client.NewQuoteClient("localhost", "6666")
+	c, err := client.NewQuoteClient("localhost", "7777")
 	if err != nil {
 		t.Fatal(err)
 	}

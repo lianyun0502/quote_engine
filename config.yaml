@@ -22,7 +22,9 @@ Log:
     debug: "Info"
 Data:
   save: false
-
+GRPCServer:
+  port: "6666"
+  host: "localhost"
 Websocket:
   - exchange: "bybit"
     host_type: "future"
