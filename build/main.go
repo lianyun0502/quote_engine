@@ -24,9 +24,11 @@ func main() {
 	quote_engine.InitLogger(logger, &config.Log)
 	ctx, cancel := context.WithCancel(context.Background())
 	if config.Data.Save {
-		datastorage.NewDataStorage(ctx, config, logger)
+		logger.Info("create data storage")
+		datastorage.NewDataStorage2(ctx, config, logger)
 	}
-	engine := quote_engine.NewBybitQuoteEngine(&config.Websocket[0], logger)
+	// engine := quote_engine.NewBybitQuoteEngine(&config.Websocket[0], logger)
+	engine := quote_engine.NewQuoteEngine(&config.Websocket[0], logger)
 	_ , err = server.NewQuoteServer(engine, config.GRPCServer.Host, config.GRPCServer.Port)
 	if err != nil {
 		logrus.Println(err)

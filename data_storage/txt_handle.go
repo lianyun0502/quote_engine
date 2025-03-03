@@ -58,3 +58,30 @@ func WithTickerTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte) {
 	}
 
 }
+
+
+func WithTradeTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte) {
+	log.Info("create trade file")
+	writer, err := rotatefile.New(
+		"data/trade_%Y%m%d%H%M.data",
+		rotatefile.WithMaxAge(time.Duration(24*7)*time.Hour),
+		rotatefile.WithRotationTime(time.Duration(1)*time.Hour),
+	)
+	if err != nil {
+		writer.Close()
+		panic(err)
+	}
+	go func() {
+		<-ctx.Done()
+		log.Info("close trade file")
+		writer.Close()
+	}()
+	return func(rawData []byte) {
+		_, err := writer.Write(rawData)
+		if err != nil {
+			log.Error(err)
+		}
+		writer.Write([]byte("\n"))
+	}
+
+}

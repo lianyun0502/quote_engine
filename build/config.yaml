@@ -1,7 +1,7 @@
 Log:
   dir: "log/"
   link_name: "latest_log.log"
-  level: "info"
+  level: "debug"
   report_caller: false
   format: "2006-01-02 15:04:05.000000"
   writer:
@@ -21,9 +21,9 @@ Log:
     info: "Info"
     debug: "Info"
 Data:
-  save: false
+  save: true
 GRPCServer:
-  port: "6666"
+  port: "1325"
   host: "localhost"
 Websocket:
   - exchange: "bybit"
@@ -178,13 +178,14 @@ Websocket:
       - "tickers.ATHUSDT"
     publisher:
       - topic: "orderbook"
-        skey: 125
-        size: 100000 #1GB
+        skey: 725
+        size: 1048576 #1GB
         store: true
-      # - topic: "publicTrade"
-      #   skey: 124
-      #   size: 1073741 #1GB
-      - topic: "tickers"
-        skey: 129
-        size: 1073741 #1GB
+      - topic: "Trade"
+        skey: 724
+        size: 1048576 #1GB
+        store: true
+      - topic: "ticker"
+        skey: 729
+        size: 1048576 #1GB
         store: true

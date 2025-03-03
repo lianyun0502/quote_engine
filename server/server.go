@@ -70,7 +70,7 @@ func (q *QuoteSever) SubscribeCoin(stream quote_proto.QuoteService_SubscribeCoin
 		strgy.Subscribe[subInfo.Symbol] = subInfo.Symbol
 		subs = append(subs, subInfo.Symbol)
 	}
-	q.engine.SubscribeQuotes(subs)
+	q.engine.Subscribe(subs)
 	return nil
 }
 
@@ -100,7 +100,7 @@ func (q *QuoteSever) UnsubscribeCoin(stream quote_proto.QuoteService_Unsubscribe
 		delete(strgy.Subscribe, subInfo.Symbol)
 		subs = append(subs, subInfo.Symbol)
 	}
-	q.engine.UnsubscribeQuotes(subs)
+	q.engine.Unsubscribe(subs)
 	return nil
 }
 
