@@ -4,4 +4,4 @@ data/
 ./*.data
 .venv/
 build/
-/*.json
+subscribes.json
