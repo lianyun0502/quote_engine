@@ -29,9 +29,9 @@ func NewDataStorage(ctx context.Context, cfg *configs.Config, logger *logrus.Log
 		for topic, sub := range sub_map {
 			switch topic {
 			case "orderbook":
-				sub.Handle = WithOrderbookTxtHandle(ctx, logger)
+				sub.Handle = WithOrderbookTxtHandle(ctx, logger, &cfg.Data)
 			case "tickers":
-				sub.Handle = WithTickerTxtHandle(ctx, logger)
+				sub.Handle = WithTickerTxtHandle(ctx, logger, &cfg.Data)
 			}
 			go sub.ReadLoop()
 
@@ -56,11 +56,11 @@ func NewDataStorage2(ctx context.Context, cfg *configs.Config, logger *logrus.Lo
 		for topic, sub := range sub_map {
 			switch topic {
 			case "orderbook":
-				sub.Handle = WithOrderbookTxtHandle(ctx, logger)
+				sub.Handle = WithOrderbookTxtHandle(ctx, logger, &cfg.Data)
 			case "Trade":
-				sub.Handle = WithTradeTxtHandle(ctx, logger)
+				sub.Handle = WithTradeTxtHandle(ctx, logger, &cfg.Data)
 			case "ticker":
-				sub.Handle = WithTickerTxtHandle(ctx, logger)
+				sub.Handle = WithTickerTxtHandle(ctx, logger, &cfg.Data)
 			}
 			go sub.ReadLoop()
 

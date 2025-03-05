@@ -9,6 +9,9 @@ import (
 
 type DataConfig struct {
 	Save bool `yaml:"save"`
+	Dir string `yaml:"dir"`
+	MaxAge int `yaml:"max_age"`
+	RotationTime int `yaml:"rotation_time"`
 }
 type LogConfig struct {
 	Dir          string            `yaml:"dir"`

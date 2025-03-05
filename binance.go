@@ -23,18 +23,17 @@ import (
 )
 
 func SymbolToTopic(symbol string) string {
-	tradeExp := regexp.MustCompile(`trade`)
-	aggTradeExp := regexp.MustCompile(`aggTrade`)
-	depthExp := regexp.MustCompile(`depthUpdate`)
 	switch {
-	case aggTradeExp.MatchString(symbol):
-		return "aggTrade"
-	case tradeExp.MatchString(symbol):
-		return "trade"
-	case depthExp.MatchString(symbol):
-		return "depthUpdate"
-	default:
-		return ""
+		case regexp.MustCompile(`aggTrade`).MatchString(symbol):
+			return "aggTrade"
+		case regexp.MustCompile(`trade`).MatchString(symbol):
+			return "trade"
+		case regexp.MustCompile(`orderbook`).MatchString(symbol):
+			return "orderbook"
+		case regexp.MustCompile(`ticker`).MatchString(symbol):
+			return "ticker"
+		default:
+			return symbol
 	}
 }
 
@@ -77,8 +76,10 @@ func BinanceSymbolToTopic(symbol string) string {
 		return "orderbook"
 	case regexp.MustCompile("ticker").MatchString(symbol):
 		return "ticker"
+	case regexp.MustCompile("24hrTicker").MatchString(symbol):
+		return "ticker"
 	default:
-		return "depthUpdate"
+		return "orderbook"
 	}
 }
 func WithTradeHandler2(logger *logrus.Logger, writer IWriter) func([]byte) {
@@ -105,13 +106,14 @@ func WithTradeHandler2(logger *logrus.Logger, writer IWriter) func([]byte) {
 	}
 }
 
-func WithOrderBookHandler2(logger *logrus.Logger, writer IWriter) func([]byte) {
+func WithOrderBookHandler2(logger *logrus.Logger, writer IWriter, cfg *configs.WsClientConfig) func([]byte) {
 	logger.Debug("orderbook handler")
-	parser := data_stream.NewPartialOrderBook(10)
+	// parser := data_stream.NewPartialOrderBook(10)
+	parser, _ := data_stream.NewOrderBookMap(cfg.HostType)
 	return func(rawData []byte) {
 		data, err := parser.Update(rawData)
 		if err != nil {
-			logger.Debug(string(rawData))
+			// logger.Debug(string(rawData))
 			logger.Error(err)
 			return
 		}
@@ -157,13 +159,15 @@ func WithBinanceMessageHandler2(wsCfg *configs.WsClientConfig, logger *logrus.Lo
 		switch topic {
 		case "aggTrade":
 			handleMap[topic] = WithTradeHandler2(logger, pub_map[topic])
-		case "depthUpdate":
-			handleMap[topic] = WithOrderBookHandler2(logger, pub_map[topic])
+		case "Trade":
+			handleMap[topic] = WithTradeHandler2(logger, pub_map[topic])
+		case "orderbook":
+			handleMap[topic] = WithOrderBookHandler2(logger, pub_map[topic], wsCfg)
 		case "ticker":
 			handleMap[topic] = WithTickerHandler2(logger, pub_map[topic])
 		default:
 			logger.Errorf("can not gen handler for unknown topic: %s", topic)
-			handleMap[topic] = WithOrderBookHandler2(logger, pub_map["depthUpdate"])
+			// handleMap[topic] = WithOrderBookHandler2(logger, pub_map["depthUpdate"])
 		}
 	}
 	dataCH := make(chan []byte, 1000)
@@ -316,12 +320,13 @@ func (qe *BinanceQuoteEngine) GetSubscribeTopics( coin string, category string) 
 	if ins, ok := qe.SubscribeIns[coin]; ok {
 		switch category {
 		case "spot":
-			topics = append(topics, fmt.Sprintf("%s@depth20@100ms", strings.ToLower(ins.Spot.Symbol)))
+			topics = append(topics, fmt.Sprintf("%s@depth@100ms", strings.ToLower(ins.Spot.Symbol)))
 			topics = append(topics, fmt.Sprintf("%s@aggTrade", strings.ToLower(ins.Spot.Symbol)))
-			// topics = append(topics, fmt.Sprintf("tickers.%s", ins.Spot.Symbol))
+			topics = append(topics, fmt.Sprintf("%s@ticker", strings.ToLower(ins.Spot.Symbol)))
 		case "future":
-			topics = append(topics, fmt.Sprintf("%s@depth20@100ms", strings.ToLower(ins.Spot.Symbol)))
+			topics = append(topics, fmt.Sprintf("%s@depth@100ms", strings.ToLower(ins.Spot.Symbol)))
 			topics = append(topics, fmt.Sprintf("%s@aggTrade", strings.ToLower(ins.Spot.Symbol)))
+			topics = append(topics, fmt.Sprintf("%s@ticker", strings.ToLower(ins.Spot.Symbol)))
 		}
 	}
 	return topics
@@ -391,22 +396,22 @@ func (qe *BinanceQuoteEngine) SetSubscribeInstruments() {
 			Spot: &TempInstrumentInfo{Symbol: "ETHUSDT"},
 			Perp: &TempInstrumentInfo{Symbol: "ETHUSDT"},
 		}
-	qe.SubscribeIns["XRP"] = &Instrument[TempInstrumentInfo]{
-			Spot: &TempInstrumentInfo{Symbol: "XRPUSDT"},
-			Perp: &TempInstrumentInfo{Symbol: "XRPUSDT"},
-		}
-	qe.SubscribeIns["ADA"] = &Instrument[TempInstrumentInfo]{
-			Spot: &TempInstrumentInfo{Symbol: "ADAUSDT"},
-			Perp: &TempInstrumentInfo{Symbol: "ADAUSDT"},
-		}
-	qe.SubscribeIns["SOL"] = &Instrument[TempInstrumentInfo]{
-			Spot: &TempInstrumentInfo{Symbol: "SOLUSDT"},
-			Perp: &TempInstrumentInfo{Symbol: "SOLUSDT"},
-		}
-	qe.SubscribeIns["LINK"] = &Instrument[TempInstrumentInfo]{
-			Spot: &TempInstrumentInfo{Symbol: "LINKUSDT"},
-			Perp: &TempInstrumentInfo{Symbol: "LINKUSDT"},
-		}
+	// qe.SubscribeIns["XRP"] = &Instrument[TempInstrumentInfo]{
+	// 		Spot: &TempInstrumentInfo{Symbol: "XRPUSDT"},
+	// 		Perp: &TempInstrumentInfo{Symbol: "XRPUSDT"},
+	// 	}
+	// qe.SubscribeIns["ADA"] = &Instrument[TempInstrumentInfo]{
+	// 		Spot: &TempInstrumentInfo{Symbol: "ADAUSDT"},
+	// 		Perp: &TempInstrumentInfo{Symbol: "ADAUSDT"},
+	// 	}
+	// qe.SubscribeIns["SOL"] = &Instrument[TempInstrumentInfo]{
+	// 		Spot: &TempInstrumentInfo{Symbol: "SOLUSDT"},
+	// 		Perp: &TempInstrumentInfo{Symbol: "SOLUSDT"},
+	// 	}
+	// qe.SubscribeIns["LINK"] = &Instrument[TempInstrumentInfo]{
+	// 		Spot: &TempInstrumentInfo{Symbol: "LINKUSDT"},
+	// 		Perp: &TempInstrumentInfo{Symbol: "LINKUSDT"},
+	// 	}
 	// subscribtions, err  := LoadSubscribes()
 	// if err == nil {
 	// 	if len(subscribtions) > 0 {

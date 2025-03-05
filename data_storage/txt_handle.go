@@ -2,17 +2,20 @@ package datastorage
 
 import (
 	"context"
+	"fmt"
+	"time"
+
+	"github.com/lianyun0502/quote_engine/configs"
 	rotatefile "github.com/lianyun0502/quote_engine/rotate_file"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
-func WithOrderbookTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte) {
+func WithOrderbookTxtHandle(ctx context.Context, log *logrus.Logger, cfg *configs.DataConfig) func([]byte) {
 	log.Info("create orderbook file")
 	writer, err := rotatefile.New(
-		"data/orderbook_%Y%m%d%H%M.data",
-		rotatefile.WithMaxAge(time.Duration(24*7)*time.Hour),
-		rotatefile.WithRotationTime(time.Duration(1)*time.Hour),
+		fmt.Sprintf("%s/orderbook/%s.data", cfg.Dir, "%Y%m%d%H%M"),
+		rotatefile.WithMaxAge(time.Duration(cfg.MaxAge)*time.Hour),
+		rotatefile.WithRotationTime(time.Duration(cfg.RotationTime)*time.Hour),
 	)
 	if err != nil {
 		writer.Close()
@@ -33,12 +36,12 @@ func WithOrderbookTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte
 
 }
 
-func WithTickerTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte) {
+func WithTickerTxtHandle(ctx context.Context, log *logrus.Logger, cfg *configs.DataConfig) func([]byte) {
 	log.Info("create ticker file")
 	writer, err := rotatefile.New(
-		"data/ticker_%Y%m%d%H%M.data",
-		rotatefile.WithMaxAge(time.Duration(24*7)*time.Hour),
-		rotatefile.WithRotationTime(time.Duration(1)*time.Hour),
+		fmt.Sprintf("%s/ticker/%s.data", cfg.Dir, "%Y%m%d%H%M"),
+		rotatefile.WithMaxAge(time.Duration(cfg.MaxAge)*time.Hour),
+		rotatefile.WithRotationTime(time.Duration(cfg.RotationTime)*time.Hour),
 	)
 	if err != nil {
 		writer.Close()
@@ -60,12 +63,12 @@ func WithTickerTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte) {
 }
 
 
-func WithTradeTxtHandle(ctx context.Context, log *logrus.Logger) func([]byte) {
+func WithTradeTxtHandle(ctx context.Context, log *logrus.Logger, cfg *configs.DataConfig) func([]byte) {
 	log.Info("create trade file")
 	writer, err := rotatefile.New(
-		"data/trade_%Y%m%d%H%M.data",
-		rotatefile.WithMaxAge(time.Duration(24*7)*time.Hour),
-		rotatefile.WithRotationTime(time.Duration(1)*time.Hour),
+		fmt.Sprintf("%s/trade/%s.data", cfg.Dir, "%Y%m%d%H%M"),
+		rotatefile.WithMaxAge(time.Duration(cfg.MaxAge)*time.Hour),
+		rotatefile.WithRotationTime(time.Duration(cfg.RotationTime)*time.Hour),
 	)
 	if err != nil {
 		writer.Close()
