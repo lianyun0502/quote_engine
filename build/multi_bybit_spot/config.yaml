@@ -23,11 +23,14 @@ Log:
 
 Data:
   save: false
-
+GRPCServer:
+  port: "1681"
+  host: "localhost"
 Websocket:
   - exchange: "bybit"
     url: "wss://stream.bybit.com/v5/public/spot"
     host_type: "spot"
+    ws_pool_size: 10
     subscribe: 
       - "orderbook.50.MKRUSDT"
       - "orderbook.50.PEOPLEUSDT"
@@ -188,7 +191,7 @@ Websocket:
       # - topic: "publicTrade"
       #   skey: 287
       #   size: 1073741 #1GB
-      - topic: "tickers"
+      - topic: "ticker"
         skey: 368
         size: 1073741 #1GB
         store: true

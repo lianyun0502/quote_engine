@@ -29,9 +29,38 @@ func NewDataStorage(ctx context.Context, cfg *configs.Config, logger *logrus.Log
 		for topic, sub := range sub_map {
 			switch topic {
 			case "orderbook":
-				sub.Handle = WithOrderbookTxtHandle(ctx, logger)
+				sub.Handle = WithOrderbookTxtHandle(ctx, logger, &cfg.Data)
 			case "tickers":
-				sub.Handle = WithTickerTxtHandle(ctx, logger)
+				sub.Handle = WithTickerTxtHandle(ctx, logger, &cfg.Data)
+			}
+			go sub.ReadLoop()
+
+		}
+	}
+	return obj
+}
+
+func NewDataStorage2(ctx context.Context, cfg *configs.Config, logger *logrus.Logger) *DataStorage {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	obj := &DataStorage{
+		sub_map:    make(map[string]map[string]*shm.Subscriber),
+		DoneSignal: ctx,
+		doneFunc:   cancel,
+	}
+	for _, wsCfg := range cfg.Websocket {
+		sub_map := NewSubscriberMap(ctx, wsCfg.Publisher, logger)
+		obj.sub_map[wsCfg.Exchange] = sub_map
+		for topic, sub := range sub_map {
+			switch topic {
+			case "orderbook":
+				sub.Handle = WithOrderbookTxtHandle(ctx, logger, &cfg.Data)
+			case "Trade":
+				sub.Handle = WithTradeTxtHandle(ctx, logger, &cfg.Data)
+			case "ticker":
+				sub.Handle = WithTickerTxtHandle(ctx, logger, &cfg.Data)
 			}
 			go sub.ReadLoop()
 

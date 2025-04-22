@@ -23,11 +23,14 @@ Log:
 
 Data:
   save: false
-
+GRPCServer:
+  port: "9999"
+  host: "localhost"
 Websocket:
   - exchange: "bybit"
     url: "wss://stream.bybit.com/v5/public/linear"
     host_type: "future"
+    ws_pool_size: 3
     subscribe: 
       - "orderbook.50.MKRUSDT"
       - "orderbook.50.PEOPLEUSDT"
@@ -182,12 +185,13 @@ Websocket:
     publisher:
       - topic: "orderbook"
         skey: 188
-        size: 1073741 #1GB
+        size: 1048576 #1GB
         store: true
-      # - topic: "publicTrade"
-      #   skey: 287
-      #   size: 1073741 #1GB
-      - topic: "tickers"
+      - topic: "Trade"
+        skey: 288
+        size: 1048576 #1GB
+        store: true
+      - topic: "ticker"
         skey: 388
-        size: 1073741 #1GB
+        size: 1048576 #1GB
         store: true

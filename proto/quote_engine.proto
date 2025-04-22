@@ -1,0 +1,63 @@
+syntax = "proto3";  
+
+package quote_proto;  // for name space
+option go_package = "proto/quote_proto";  // generated code 的 full Go import path
+
+
+message SubscribeResquest {
+  string ID = 1;
+}
+message SubscribeResponse {
+  int64 result = 1;
+}
+message UnsubscribeResquest {
+  string ID = 1;
+}
+message UnsubscribeResponse {
+  int64 result = 1;
+}
+
+message Subscribe {
+  string ID = 1;
+  string symbol = 2;
+}
+
+message Unsubscribe {
+  string ID = 1;
+  string symbol = 2;
+}
+
+message ListQuotesRequest {}
+message ListQuotesResponse {
+    repeated string symbol = 1;
+}
+message ListRegisteredStrategiesRequest {}
+message ListRegisteredStrategiesResponse {
+    repeated Strategy strategy = 1;
+}
+
+message Strategy {
+  string ID = 1;
+  string name = 2;
+  string description = 3;
+  repeated string subscribe = 4;
+}
+
+message RegisterStrategyRequest {
+  string ID = 1;
+    string name = 2;
+}
+
+message RegisterStrategyResponse {
+  int64 result = 1;
+}
+
+service QuoteService {
+  rpc ListQuotes(ListQuotesRequest) returns (ListQuotesResponse) {};
+  rpc ListRegisteredStrategies (ListRegisteredStrategiesRequest) returns (ListRegisteredStrategiesResponse) {};
+  rpc RegisterStrategy (RegisterStrategyRequest) returns (RegisterStrategyResponse) {};
+  rpc UnregisterStrategy (RegisterStrategyRequest) returns (RegisterStrategyResponse) {};
+  rpc SubscribeCoin (stream Subscribe) returns (SubscribeResponse) {};
+  rpc UnsubscribeCoin (stream Unsubscribe) returns (UnsubscribeResponse) {};
+}
+
