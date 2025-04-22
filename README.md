@@ -248,3 +248,23 @@ gRPC 服務設定，用於提供API服務。
 | GetTrade | 取得特定交易所和交易對的最新成交資料 |
 | Subscribe | 訂閱特定交易所和交易對的行情資料 |
 | Unsubscribe | 取消訂閱特定交易所和交易對的行情資料 |
+
+
+
+## subscribes.json
+```json
+{
+  "0":[
+  {"coin":"BTC","symbol":"BTCUSDT","topics":["btcusdt@depth@100ms","btcusdt@aggTrade","btcusdt@ticker"]},
+  {"coin":"ETH","symbol":"ETHUSDT","topics":["ethusdt@depth@100ms","ethusdt@aggTrade","ethusdt@ticker"]}]
+}
+
+```
+
+說明：
+- "0" : WS pool id，開啟的WS連線流水號，須對應到config.yaml中的ws_pool_size的個數， "0"代表第一個WS連線，"1" 代表第二個WS連線，以此類推。
+- "coin" : 交易幣別
+- "symbol" : 交易對
+- "topics" : 訂閱的topic，請參考交易所文件，topic名稱會隨著交易所不同而不同。
+
+如果是使用GRPC API來訂閱的話，則不需要在這裡設定，會自動幫你訂閱。
