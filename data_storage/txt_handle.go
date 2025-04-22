@@ -2,7 +2,8 @@ package datastorage
 
 import (
 	"context"
-	"fmt"
+	// "fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/lianyun0502/quote_engine/configs"
@@ -12,8 +13,9 @@ import (
 
 func WithOrderbookTxtHandle(ctx context.Context, log *logrus.Logger, cfg *configs.DataConfig) func([]byte) {
 	log.Info("create orderbook file")
+	file_path := filepath.Join(cfg.Dir, "trade", "%Y%m%d%H%M.data")
 	writer, err := rotatefile.New(
-		fmt.Sprintf("%s/orderbook/%s.data", cfg.Dir, "%Y%m%d%H%M"),
+		file_path,
 		rotatefile.WithMaxAge(time.Duration(cfg.MaxAge)*time.Hour),
 		rotatefile.WithRotationTime(time.Duration(cfg.RotationTime)*time.Hour),
 	)
@@ -38,8 +40,9 @@ func WithOrderbookTxtHandle(ctx context.Context, log *logrus.Logger, cfg *config
 
 func WithTickerTxtHandle(ctx context.Context, log *logrus.Logger, cfg *configs.DataConfig) func([]byte) {
 	log.Info("create ticker file")
+	file_path := filepath.Join(cfg.Dir, "trade", "%Y%m%d%H%M.data")
 	writer, err := rotatefile.New(
-		fmt.Sprintf("%s/ticker/%s.data", cfg.Dir, "%Y%m%d%H%M"),
+		file_path,
 		rotatefile.WithMaxAge(time.Duration(cfg.MaxAge)*time.Hour),
 		rotatefile.WithRotationTime(time.Duration(cfg.RotationTime)*time.Hour),
 	)
@@ -65,8 +68,9 @@ func WithTickerTxtHandle(ctx context.Context, log *logrus.Logger, cfg *configs.D
 
 func WithTradeTxtHandle(ctx context.Context, log *logrus.Logger, cfg *configs.DataConfig) func([]byte) {
 	log.Info("create trade file")
+	file_path := filepath.Join(cfg.Dir, "trade", "%Y%m%d%H%M.data")
 	writer, err := rotatefile.New(
-		fmt.Sprintf("%s/trade/%s.data", cfg.Dir, "%Y%m%d%H%M"),
+		file_path,
 		rotatefile.WithMaxAge(time.Duration(cfg.MaxAge)*time.Hour),
 		rotatefile.WithRotationTime(time.Duration(cfg.RotationTime)*time.Hour),
 	)

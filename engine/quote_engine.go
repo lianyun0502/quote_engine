@@ -11,10 +11,6 @@ import (
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/lianyun0502/quote_engine/configs"
-
-	// bybit_http "github.com/lianyun0502/exchange_conn/v2/bybit/http_client"
-	// bybit_resp "github.com/lianyun0502/exchange_conn/v2/bybit/response"
-	// bybit_ws "github.com/lianyun0502/exchange_conn/v2/bybit/ws_client"
 	"github.com/lianyun0502/exchange_conn/v2/common"
 	"github.com/lianyun0502/shm"
 	"github.com/rifflock/lfshook"
@@ -199,24 +195,6 @@ func NewSubscribeMap(subscribes []string) map[string][]string {
 	return sub_map
 }
 
-// func NewSubscribeMap2[Info any](subscribes map[string]*Instrument[Info], category string) map[string][]string {
-// 	sub_map := make(map[string][]string)
-// 	for k, ins := range subscribes {
-// 		if _, ok := sub_map[k]; !ok {
-// 			sub_map[k] = make([]string, 0)
-// 			switch category {
-// 			case "spot":
-// 				sub_map[k] = append(sub_map[k], fmt.Sprintf("orderbook.50.%s", ins.Spot.Symbol))
-// 				sub_map[k] = append(sub_map[k], fmt.Sprintf("tickers.%s", ins.Spot.Symbol))
-// 			case "future":
-// 				sub_map[k] = append(sub_map[k], fmt.Sprintf("orderbook.50.%s", ins.Perp.Symbol))
-// 				sub_map[k] = append(sub_map[k], fmt.Sprintf("tickers.%s", ins.Perp.Symbol))
-// 			}
-// 		}
-
-// 	}
-// 	return sub_map
-// }
 func NewPublisherMap(publishers []configs.PublisherConfig) map[string]*shm.Publisher {
 	pub_map := make(map[string]*shm.Publisher)
 	for _, pub := range publishers {
@@ -231,7 +209,6 @@ func NewSubscriberMap(publishers []configs.PublisherConfig) map[string]*shm.Subs
 	}
 	return sub_map
 }
-
 
 func SaveSubscribes[WS any](pool *xsync.MapOf[string, *WsClient[WS]]) error {
 	file, err := os.OpenFile("subscribes.json", os.O_CREATE|os.O_WRONLY, 0666)

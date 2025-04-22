@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lianyun0502/quote_engine"
+	"github.com/lianyun0502/quote_engine/engine"
 	"github.com/sirupsen/logrus"
 )
 

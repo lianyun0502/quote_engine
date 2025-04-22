@@ -7,7 +7,7 @@ import (
 	"net"
 	// "time"
 
-	"github.com/lianyun0502/quote_engine"
+	"github.com/lianyun0502/quote_engine/engine"
 	quote_proto "github.com/lianyun0502/quote_engine/proto"
 	"google.golang.org/grpc"
 )
@@ -20,6 +20,7 @@ type Strategy struct {
 
 type QuoteSever struct {
 	engine quote_engine.IQuoteEngine
+	grpc_server *grpc.Server
 	strategy map[string]*Strategy
 }
 
@@ -29,19 +30,22 @@ func NewQuoteServer(engine quote_engine.IQuoteEngine, host, port string) (*Quote
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen: %v", err)
 	}
+
 	server := &QuoteSever{
 		engine: engine,
+		grpc_server: grpc.NewServer(),
 		strategy: make(map[string]*Strategy),
 	}
-	qrpcServer := grpc.NewServer()
-	quote_proto.RegisterQuoteServiceServer(qrpcServer, server)
+	quote_proto.RegisterQuoteServiceServer(server.grpc_server, server)
+	go server.grpc_server.Serve(lis)
 	fmt.Println("gRPC server registered")
-	go qrpcServer.Serve(lis)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to serve: %v", err)
-	// }
 	fmt.Println("gRPC server started")
 	return server, nil
+}
+
+func (q *QuoteSever) Stop() {
+	q.grpc_server.Stop()
+	fmt.Println("gRPC server stopped")
 }
 
 func (q *QuoteSever) ListQuotes(ctx context.Context, res *quote_proto.ListQuotesRequest) (*quote_proto.ListQuotesResponse, error) {

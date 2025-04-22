@@ -1,5 +1,7 @@
 # Quote Engine
 
+# Quote Engine
+
 行情引擎，透過 websocket 串流行情資料，並透過 share memory 來傳遞行情資料。
 
 
@@ -11,6 +13,7 @@
 - [Execute](#Execute)
 - [Config 格式](#Config-格式)
 - [Config 說明](#Config-說明)
+- [GRPC API](#GRPC-API)
 
 
 ## Environment
@@ -25,47 +28,25 @@ there are two ways to install and use the package, one is to clone the repositor
 
 1. first clone the repository into your project directory
 
-    ```bash
-    git clone https://github.com/lianyun0502/quote_engine.git
-    ```
+  ```bash
+  git clone https://github.com/lianyun0502/quote_engine.git
+  ```
 
-    Your directory structure should look like this:
+  Your directory structure should look like this:
 
-    ```bash
-    your_project/
-    ├── build/
-    ├── quote_engine.go
-    └── go.mod
-    ```
-    
-2. replace the import refernce with the path of the repository in your project.
+  ```bash
+  your_project/
+  ├── build/
+  ├── main.go
+  ├── config.yaml
+  └── go.mod
+  ```
+2. install the package from your `go.mod` file
 
-    ```bash
-    go mod edit -replace=github.com/lianyun0502/quote_engine=../quote_engine
-    ```
-
-3. import the package in your project
-
-    ```Go
-    import (
-        "github.com/lianyun0502/quote_engine"
-    )
-    ```
-
-### Install the package use `go get`
-
-1. use the `go get` command to install the package
-
-    ```bash
-    go get github.com/lianyun0502/quote_engine
-    ```
-2. import the package in your project
-
-    ```Go
-    import (
-        "github.com/lianyun0502/quote_engine"
-    )
-    ```
+  ```bash
+    go mod tidy
+  ```
+  
 
 ## Example
 
@@ -73,26 +54,26 @@ there are two ways to install and use the package, one is to clone the repositor
 package main
 
 import (
-	"github.com/sirupsen/logrus"
-	. "github.com/lianyun0502/quote_engine"
+  "github.com/sirupsen/logrus"
+  . "github.com/lianyun0502/quote_engine/engine"
 )
 
 func main() {
-    // load config file
-	config, err := LoadConfig("config.yaml")
-	if err != nil {
-		logrus.Println(err)
-		return
-	} 
+  // load config file
+  config, err := LoadConfig("config.yaml")
+  if err != nil {
+    logrus.Println(err)
+    return
+  } 
 
-    // create quote engine
-	quoteEngine := NewQuoteEngine(config)
+  // create quote engine
+  quoteEngine := NewQuoteEngine(config)
 
-    // start the quote engine
-	quoteEngine.WsAgent.StartLoop()
+  // start the quote engine
+  quoteEngine.WsAgent.StartLoop()
 
-    // wait for done signal
-	<- quoteEngine.DoneSignal
+  // wait for done signal
+  <- quoteEngine.DoneSignal
 }
 ```
 
@@ -101,23 +82,23 @@ func main() {
 
 1. entry the build directory
 
-    ```bash
-    cd build
-    ```
+  ```bash
+  cd build
+  ```
 2. build the project
 
-    ```bash
-    go build -o ./you_dir/quote_engine 
-    ```
+  ```bash
+  go build -o ./you_dir/excutable_file_name 
+  ```
 
 ## Execute
 
 After building the project, put config file `config.yaml` in directory and you can execute the project by the following command.
 1. execute the project
 
-    ```bash
-    ./quote_engine
-    ```
+  ```bash
+  ./excutable_file_name
+  ```
 
 
 ## Config 格式
@@ -125,52 +106,64 @@ After building the project, put config file `config.yaml` in directory and you c
 ```yaml
 # logger 相關設定
 Log:
-  dir: "log/" 
-  link_name: "latest_log.log"
-  level: "debug"
-  report_caller: false
+  dir: "log/"                                 # log file directory
+  link_name: "latest_log.log"                
+  level: "debug"                              # log level ( debug, info, warn, error, fatal, panic )
+  report_caller: false                        # whether report the caller info           
   format: "2006-01-02 15:04:05.000000"
-  writer:                                  # log file writer 相關設定 
-    - name: "Info"
-      path: "%Y%m%d_%H%M.log"
-      max_age: 480
-      rotation_time: 2
-    - name: "Warn"
-      path: "warn/%Y%m%d_%H%M.log"
-      max_age: 480
-      rotation_time: 2
-  write_map:                               # log level 與 writer 的對應 
-    panic: "Warn"
-    fatal: "Warn"
-    error: "Warn"
-    warn: "Warn"
-    info: "Info"
-    debug: "Info"
+  writer:
+  - name: "Info"
+    path: "%Y%m%d_%H%M.log"
+    max_age: 480
+    rotation_time: 2
+  - name: "Warn"
+    path: "warn/%Y%m%d_%H%M.log"
+    max_age: 480
+    rotation_time: 2
+  write_map:
+  panic: "Warn"
+  fatal: "Warn"
+  error: "Warn"
+  warn: "Warn"
+  info: "Info"
+  debug: "Info"
 
-# websocket client 相關設定    
-Websocket:
-  - exchange: "bybit"
-    url: "wss://stream.bybit.com/v5/public/linear"
-    subscribe: 
-      # - "orderbook.50.BTCUSDT"
-      # - "publicTrade.BTCUSDT"
-      - "tickers.BTCUSDT"
-    reconn_time: 10
-    cmd:
-      - method: "depth"
-        params:
-          symbol: "BTCUSDT"
-          limit: 5
-    publisher:
-      - topic: "orderbook.50.BTCUSDT"
-        skey: 177
-        size: 1073741 
-      - topic: "publicTrade.BTCUSDT"
-        skey: 277
-        size: 1073741 
-      - topic: "tickers.BTCUSDT"
-        skey: 377
-        size: 1073741 
+Data:                                         # 資料存放設定
+  save: true                                  # 是否儲存資料
+  dir: "data/"                                # 資料存放root     
+  max_age: 480                                # 資料存放最大時間 (單位: 小時)
+  rotation_time: 2                            # 每個資料檔案存放時間 (單位: 小時)      
+
+GRPCServer:                                   # grpc server 相關設定
+  port: "1687"                                # grpc server port
+  host: "localhost"                           # grpc server host
+
+  
+Websocket:                                    # websocket client 相關設定
+  - exchange: "binance"                       # 交易所名稱          
+  url: "wss://stream.bybit.com/v5/public/spot" # 已棄用
+  host_type: "spot"                         # 交易商品類型 (spot, future)
+  ws_pool_size: 1                           # websocket pool size，開啟WS連線數量
+  subscribe: 
+  reconn_time: -1                           # 重連次數，-1 代表無限重連
+  cmd:                                      # 已棄用
+    - method: "depth"
+    params:
+      symbol: "BTCUSDT"
+      limit: 5
+  publisher:                                # 設定要發布的topic，及對應的share memory skey設定
+    - topic: "orderbook"                    # orderbook topic
+    skey: 158
+    size: 1073741 #1GB
+    store: true
+    - topic: "Trade"                        # trade topic 
+    skey: 258
+    size: 1073741 #1GB
+    store: true
+    - topic: "ticker"                       # market data ticker topic
+    skey: 358
+    size: 1073741 #1GB
+    store: true
 ```
 
 ## Config 說明
@@ -199,6 +192,25 @@ log writter 設定，max_age 為 log file 最大存放時間 (單位: 小時)，
 | max_age | int | max age of the log files store in hours |
 | rotation_time | int | data storage time in hours per file |
 
+### Data
+
+資料儲存設定，決定是否儲存接收的行情資料及存放位置。
+
+| Key | Type | Description |
+| --- | --- | --- |
+| save | bool | whether to save the data |
+| dir | string | root directory of data storage |
+| max_age | int | max age of the data files store in hours |
+| rotation_time | int | data storage time in hours per file |
+
+### GRPCServer
+
+gRPC 服務設定，用於提供API服務。
+
+| Key | Type | Description |
+| --- | --- | --- |
+| port | string | gRPC server port |
+| host | string | gRPC server host |
 
 ### Websocket
 
@@ -207,10 +219,12 @@ log writter 設定，max_age 為 log file 最大存放時間 (單位: 小時)，
 | Key | Type | Description |
 | --- | --- | --- |
 | exchange | string | exchange name ( bybit, binance ...) |
-| url | string | data stream url (參考交易所文件)|
+| host_type | string | 交易商品類型 (spot, future) |
+| ws_pool_size | int | websocket pool size，開啟WS連線數量 |
+| url | string | data stream url (參考交易所文件) [已棄用] |
 | subscribe | list | list of topics to subscribe (參考交易所文件) |
 | reconn_time | int | retry times of reconnection, set -1 will always retry |
-| cmd | list | list of commands to send after connection |
+| cmd | list | list of commands to send after connection [已棄用] |
 | publisher | list | list of topics to publish |
 
 #### Websocket.publisher
@@ -222,5 +236,15 @@ log writter 設定，max_age 為 log file 最大存放時間 (單位: 小時)，
 | topic | string | topic name (與訂閱行情相同, 會擷取topic字串，ex. orderbook.50.BTCUSDT -> orderbook )|
 | skey | int | share memory 代號 |
 | size | int | max size of the share memory buffer |
+| store | bool | whether to store the data |
 
 
+## GRPC API
+| Method | Description |
+| --- | --- |
+| GetStatus | 取得引擎狀態，包括各交易所連線狀態 |
+| GetOrderbook | 取得特定交易所和交易對的訂單簿資料 |
+| GetTicker | 取得特定交易所和交易對的Ticker資料 |
+| GetTrade | 取得特定交易所和交易對的最新成交資料 |
+| Subscribe | 訂閱特定交易所和交易對的行情資料 |
+| Unsubscribe | 取消訂閱特定交易所和交易對的行情資料 |

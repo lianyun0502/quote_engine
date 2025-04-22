@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/lianyun0502/quote_engine"
+	"github.com/lianyun0502/quote_engine/engine"
 	"github.com/lianyun0502/quote_engine/configs"
 	"github.com/lianyun0502/quote_engine/server"
 	"github.com/sirupsen/logrus"

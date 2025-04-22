@@ -6,7 +6,7 @@ import (
 
 	nested "github.com/antonfisher/nested-logrus-formatter"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
-	"github.com/lianyun0502/quote_engine"
+	"github.com/lianyun0502/quote_engine/engine"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
 )
