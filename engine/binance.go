@@ -411,10 +411,10 @@ func (qe *BinanceQuoteEngine) SetSubscribeInstruments() {
 			Spot: &TempInstrumentInfo{Symbol: "BTCUSDT"},
 			Perp: &TempInstrumentInfo{Symbol: "BTCUSDT"},
 		}
-	qe.SubscribeIns["ETH"] = &Instrument[TempInstrumentInfo]{
-			Spot: &TempInstrumentInfo{Symbol: "ETHUSDT"},
-			Perp: &TempInstrumentInfo{Symbol: "ETHUSDT"},
-		} 
+	// qe.SubscribeIns["ETH"] = &Instrument[TempInstrumentInfo]{
+	// 		Spot: &TempInstrumentInfo{Symbol: "ETHUSDT"},
+	// 		Perp: &TempInstrumentInfo{Symbol: "ETHUSDT"},
+	// 	} 
 	// qe.SubscribeIns["XRP"] = &Instrument[TempInstrumentInfo]{
 	// 		Spot: &TempInstrumentInfo{Symbol: "XRPUSDT"},
 	// 		Perp: &TempInstrumentInfo{Symbol: "XRPUSDT"},
@@ -435,13 +435,18 @@ func (qe *BinanceQuoteEngine) SetSubscribeInstruments() {
 	if err == nil {
 		if len(subscribtions) > 0 {
 			qe.Logger.Info("Load subscribes from file")
-			for _, v := range subscribtions {
+			for num, v := range subscribtions {
+				engine, ok := qe.WsPool.Load(string(num))
+				if !ok {
+					qe.Logger.Errorf("number %s not found in pool", num)
+					continue
+				}
 				sub := make([]string, 0)
 				for _, quote := range v {
 					fmt.Printf("%+v\n", quote)
-					sub = append(sub, quote.Coin)
+					sub = append(sub, quote.Topics...)
 				}
-				qe.Subscribe(sub)
+				engine.WsClient.Subscribe(sub)
 			}
 			return
 		}

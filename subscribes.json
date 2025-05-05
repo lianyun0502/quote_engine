@@ -1,1 +1,6 @@
-{"0":[{"coin":"ETH","symbol":"ETHUSDT","topics":["ethusdt@depth@100ms","ethusdt@aggTrade","ethusdt@ticker"]},{"coin":"BTC","symbol":"BTCUSDT","topics":["btcusdt@depth@100ms","btcusdt@aggTrade","btcusdt@ticker"]}]}
+{"0":[
+    {"coin":"ETH","symbol":"ETHUSDT","topics":["ethusdt@depth@100ms","ethusdt@aggTrade","ethusdt@ticker"]},
+    {"coin":"BTC","symbol":"BTCUSDT","topics":["btcusdt@depth@100ms","btcusdt@aggTrade","btcusdt@ticker"]},
+    {"coin":"ADA","symbol":"ADAUSDT","topics":["adausdt@depth@100ms","adausdt@aggTrade","adausdt@ticker"]}
+    ]
+}
