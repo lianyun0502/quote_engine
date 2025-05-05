@@ -9,7 +9,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.1.0
-	github.com/lianyun0502/exchange_conn v0.0.0-20250307214028-96678a17b5d3
+	github.com/lianyun0502/exchange_conn v0.0.0-20250505100912-8fd4d14f6428
 	github.com/lianyun0502/shm v0.0.0-20241126020025-65d1b31afaca
 	github.com/pkg/errors v0.9.1
 	github.com/puzpuzpuz/xsync/v3 v3.5.1

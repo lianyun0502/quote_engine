@@ -255,8 +255,15 @@ gRPC 服務設定，用於提供API服務。
 ```json
 {
   "0":[
-  {"coin":"BTC","symbol":"BTCUSDT","topics":["btcusdt@depth@100ms","btcusdt@aggTrade","btcusdt@ticker"]},
-  {"coin":"ETH","symbol":"ETHUSDT","topics":["ethusdt@depth@100ms","ethusdt@aggTrade","ethusdt@ticker"]}]
+    { "coin":"BTC",
+      "symbol":"BTCUSDT",
+      "topics":
+        ["btcusdt@depth@100ms","btcusdt@aggTrade","btcusdt@ticker"]},
+    { "coin":"ETH",
+      "symbol":"ETHUSDT",
+      "topics":
+        ["ethusdt@depth@100ms","ethusdt@aggTrade","ethusdt@ticker"]}
+      ]
 }
 
 ```

@@ -22,7 +22,7 @@ Log:
     debug: "Info"
 Data:
   save: true
-  dir: "/mnt/e/data/"
+  dir: "data/"
   max_age: 480
   rotation_time: 2
 GRPCServer:

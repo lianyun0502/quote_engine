@@ -13,7 +13,7 @@ import (
 
 func WithOrderbookTxtHandle(ctx context.Context, log *logrus.Logger, cfg *configs.DataConfig) func([]byte) {
 	log.Info("create orderbook file")
-	file_path := filepath.Join(cfg.Dir, "trade", "%Y%m%d%H%M.data")
+	file_path := filepath.Join(cfg.Dir, "orderbook", "%Y%m%d%H%M.data")
 	writer, err := rotatefile.New(
 		file_path,
 		rotatefile.WithMaxAge(time.Duration(cfg.MaxAge)*time.Hour),
@@ -40,7 +40,7 @@ func WithOrderbookTxtHandle(ctx context.Context, log *logrus.Logger, cfg *config
 
 func WithTickerTxtHandle(ctx context.Context, log *logrus.Logger, cfg *configs.DataConfig) func([]byte) {
 	log.Info("create ticker file")
-	file_path := filepath.Join(cfg.Dir, "trade", "%Y%m%d%H%M.data")
+	file_path := filepath.Join(cfg.Dir, "market", "%Y%m%d%H%M.data")
 	writer, err := rotatefile.New(
 		file_path,
 		rotatefile.WithMaxAge(time.Duration(cfg.MaxAge)*time.Hour),

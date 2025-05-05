@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	// "github.com/lianyun0502/exchange_conn/v2/binance/data_stream"
@@ -219,7 +220,6 @@ type MsgHandle func([]byte) (any, error)
 type TempInstrumentInfo struct {
 	Symbol string
 }
-
 type BinanceQuoteEngine struct {
 	Logger       *logrus.Logger
 	Api          *binance_http.BinanceClient
@@ -229,6 +229,7 @@ type BinanceQuoteEngine struct {
 	Scheduler    map[string]*time.Ticker
 	Cfg          *configs.WsClientConfig
 	WsPool       *xsync.MapOf[string, *WsClient[binance_ws.WsBinanceClient]]
+	mutex        sync.Mutex
 }
 
 
@@ -261,9 +262,8 @@ func NewBinanceQuoteEngine(cfg *configs.WsClientConfig, logger *logrus.Logger) *
 		)
 		ws.Logger = logger
 		time.Sleep(1 * time.Second)
+		ws.PostStartFunc = WithBinancePostStartFunc(ws, WsClinet.Quotes)
 		ws.Connect()
-		// go WithResetWsFunc(WsClinet, engine.WsPool)()
-		go ws.StartLoop()
 	}
 	return engine
 }
@@ -361,7 +361,9 @@ func (qe *BinanceQuoteEngine) Subscribe(coins []string) error {
 			Topics: topics,
 		}
 	}
+	qe.mutex.Lock()
 	SaveSubscribes(qe.WsPool)
+	qe.mutex.Unlock()
 	return nil
 }
 
@@ -385,6 +387,23 @@ func (qe *BinanceQuoteEngine) Unsubscribe(coins []string) error{
 	return nil
 }
 
+func WithBinancePostStartFunc(ws *binance_ws.WsBinanceClient, Quotes map[string]Quote) func() error{
+	return func() error {
+		ws.Logger.Debug("post start func")
+		topic_list := make([]string, 0)
+		for _, quote := range Quotes {
+			topic_list = append(topic_list, quote.Topics...)
+		}
+		if len(topic_list) != 0 {
+			_, err := ws.Subscribe(topic_list)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
 func (qe *BinanceQuoteEngine) SetSubscribeInstruments() {
 	fmt.Println("SetSubscribeInstruments")
 	// qe.SubscribeIns = qe.GetInstruments()
@@ -395,7 +414,7 @@ func (qe *BinanceQuoteEngine) SetSubscribeInstruments() {
 	qe.SubscribeIns["ETH"] = &Instrument[TempInstrumentInfo]{
 			Spot: &TempInstrumentInfo{Symbol: "ETHUSDT"},
 			Perp: &TempInstrumentInfo{Symbol: "ETHUSDT"},
-		}
+		} 
 	// qe.SubscribeIns["XRP"] = &Instrument[TempInstrumentInfo]{
 	// 		Spot: &TempInstrumentInfo{Symbol: "XRPUSDT"},
 	// 		Perp: &TempInstrumentInfo{Symbol: "XRPUSDT"},
@@ -412,27 +431,27 @@ func (qe *BinanceQuoteEngine) SetSubscribeInstruments() {
 	// 		Spot: &TempInstrumentInfo{Symbol: "LINKUSDT"},
 	// 		Perp: &TempInstrumentInfo{Symbol: "LINKUSDT"},
 	// 	}
-	// subscribtions, err  := LoadSubscribes()
-	// if err == nil {
-	// 	if len(subscribtions) > 0 {
-	// 		qe.Logger.Info("Load subscribes from file")
-	// 		for _, v := range subscribtions {
-	// 			sub := make([]string, 0)
-	// 			for _, quote := range v {
-	// 				// fmt.Printf("%+v\n", quote)
-	// 				sub = append(sub, quote.Coin)
-	// 			}
-	// 			qe.Subscribe(sub)
-	// 		}
-	// 		return
-	// 	}
-	// }else{
-	// 	qe.Logger.Warning(err)
-	// }
-	// insFisrt30 := qe.MatchFilter(qe.SubscribeIns)
-	for k := range qe.SubscribeIns {
-		qe.Subscribe([]string{k})
+	subscribtions, err  := LoadSubscribes()
+	if err == nil {
+		if len(subscribtions) > 0 {
+			qe.Logger.Info("Load subscribes from file")
+			for _, v := range subscribtions {
+				sub := make([]string, 0)
+				for _, quote := range v {
+					fmt.Printf("%+v\n", quote)
+					sub = append(sub, quote.Coin)
+				}
+				qe.Subscribe(sub)
+			}
+			return
+		}
+	}else{
+		qe.Logger.Warning(err)
 	}
+	// insFisrt30 := qe.MatchFilter(qe.SubscribeIns)
+	// for k := range qe.SubscribeIns {
+	// 	qe.Subscribe([]string{k})
+	// }
 }
 
 

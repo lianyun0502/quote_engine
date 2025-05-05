@@ -5,3 +5,6 @@ data/
 .venv/
 build/
 subscribes.json
+binance_spot/binance_spot_qe
+.gitignore
+binance_spot/config.yaml
