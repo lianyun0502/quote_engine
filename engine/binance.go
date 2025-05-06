@@ -389,7 +389,7 @@ func (qe *BinanceQuoteEngine) Unsubscribe(coins []string) error{
 
 func WithBinancePostStartFunc(ws *binance_ws.WsBinanceClient, Quotes map[string]Quote) func() error{
 	return func() error {
-		ws.Logger.Debug("post start func")
+		ws.Logger.Debugf("ws : %s post start func")
 		topic_list := make([]string, 0)
 		for _, quote := range Quotes {
 			topic_list = append(topic_list, quote.Topics...)
@@ -445,6 +445,7 @@ func (qe *BinanceQuoteEngine) SetSubscribeInstruments() {
 				for _, quote := range v {
 					fmt.Printf("%+v\n", quote)
 					sub = append(sub, quote.Topics...)
+					engine.Quotes[quote.Coin] = *quote
 				}
 				engine.WsClient.Subscribe(sub)
 			}
