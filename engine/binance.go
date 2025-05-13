@@ -110,7 +110,7 @@ func WithTradeHandler2(logger *logrus.Logger, writer IWriter) func([]byte) {
 func WithOrderBookHandler2(logger *logrus.Logger, writer IWriter, cfg *configs.WsClientConfig) func([]byte) {
 	logger.Debug("orderbook handler")
 	// parser := data_stream.NewPartialOrderBook(10)
-	parser, _ := data_stream.NewOrderBookMap(cfg.HostType)
+	parser, _ := data_stream.NewOrderBookManager(cfg.HostType)
 	return func(rawData []byte) {
 		data, err := parser.Update(rawData)
 		if err != nil {
@@ -389,6 +389,7 @@ func (qe *BinanceQuoteEngine) Unsubscribe(coins []string) error{
 
 func WithBinancePostStartFunc(ws *binance_ws.WsBinanceClient, Quotes map[string]Quote) func() error{
 	return func() error {
+		time.Sleep(20 * time.Second)
 		ws.Logger.Debugf("ws : %s post start func")
 		topic_list := make([]string, 0)
 		for _, quote := range Quotes {

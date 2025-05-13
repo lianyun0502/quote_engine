@@ -1,6 +1,35 @@
 {"0":[
     {"coin":"ETH","symbol":"ETHUSDT","topics":["ethusdt@depth@100ms","ethusdt@aggTrade","ethusdt@ticker"]},
     {"coin":"BTC","symbol":"BTCUSDT","topics":["btcusdt@depth@100ms","btcusdt@aggTrade","btcusdt@ticker"]},
-    {"coin":"ADA","symbol":"ADAUSDT","topics":["adausdt@depth@100ms","adausdt@aggTrade","adausdt@ticker"]}
+    {"coin":"SOL","symbol":"SOLUSDT","topics":["solusdt@depth@100ms","solusdt@aggTrade","solusdt@ticker"]},
+    {"coin":"XRP","symbol":"XRPUSDT","topics":["xrpusdt@depth@100ms","xrpusdt@aggTrade","xrpusdt@ticker"]},
+    {"coin":"DOGE","symbol":"DOGEUSDT","topics":["dogeusdt@depth@100ms","dogeusdt@aggTrade","dogeusdt@ticker"]},
+    {"coin":"LINK","symbol":"LINKUSDT","topics":["linkusdt@depth@100ms","linkusdt@aggTrade","linkusdt@ticker"]},
+    {"coin":"ADA","symbol":"ADAUSDT","topics":["adausdt@depth@100ms","adausdt@aggTrade","adausdt@ticker"]},
+    {"coin":"TRX","symbol":"TRXUSDT","topics":["trxusdt@depth@100ms","trxusdt@aggTrade","trxusdt@ticker"]},
+    {"coin":"BNB","symbol":"BNBUSDT","topics":["bnbusdt@depth@100ms","bnbusdt@aggTrade","bnbusdt@ticker"]},
+    {"coin":"SHIB","symbol":"SHIBUSDT","topics":["shibusdt@depth@100ms","shibusdt@aggTrade","shibusdt@ticker"]},
+    {"coin":"MATIC","symbol":"MATICUSDT","topics":["maticusdt@depth@100ms","maticusdt@aggTrade","maticusdt@ticker"]},
+    {"coin":"LTC","symbol":"LTCUSDT","topics":["ltcusdt@depth@100ms","ltcusdt@aggTrade","ltcusdt@ticker"]},
+    {"coin":"DOT","symbol":"DOTUSDT","topics":["dotusdt@depth@100ms","dotusdt@aggTrade","dotusdt@ticker"]},
+    {"coin":"TRB","symbol":"TRBUSDT","topics":["trbusdt@depth@100ms","trbusdt@aggTrade","trbusdt@ticker"]},
+    {"coin":"ARB","symbol":"ARBUSDT","topics":["arbusdt@depth@100ms","arbusdt@aggTrade","arbusdt@ticker"]},
+    {"coin":"FIL","symbol":"FILUSDT","topics":["filusdt@depth@100ms","filusdt@aggTrade","filusdt@ticker"]},
+    {"coin":"AVAX","symbol":"AVAXUSDT","topics":["avaxusdt@depth@100ms","avaxusdt@aggTrade","avaxusdt@ticker"]},
+    {"coin":"SAND","symbol":"SANDUSDT","topics":["sandusdt@depth@100ms","sandusdt@aggTrade","sandusdt@ticker"]},
+    {"coin":"MANA","symbol":"MANAUSDT","topics":["manusdt@depth@100ms","manusdt@aggTrade","manusdt@ticker"]},
+    {"coin":"FTM","symbol":"FTMUSDT","topics":["ftmusdt@depth@100ms","ftmusdt@aggTrade","ftmusdt@ticker"]},
+    {"coin":"AAVE","symbol":"AAVEUSDT","topics":["aaveusdt@depth@100ms","aaveusdt@aggTrade","aaveusdt@ticker"]},
+    {"coin":"XLM","symbol":"XLMUSDT","topics":["xlmusdt@depth@100ms","xlmusdt@aggTrade","xlmusdt@ticker"]},
+    {"coin":"ETC","symbol":"ETCUSDT","topics":["etcusdt@depth@100ms","etcusdt@aggTrade","etcusdt@ticker"]},
+    {"coin":"ZEC","symbol":"ZECUSDT","topics":["zecusdt@depth@100ms","zecusdt@aggTrade","zecusdt@ticker"]},
+    {"coin":"EOS","symbol":"EOSUSDT","topics":["eosusdt@depth@100ms","eosusdt@aggTrade","eosusdt@ticker"]},
+    {"coin":"CHZ","symbol":"CHZUSDT","topics":["chzusdt@depth@100ms","chzusdt@aggTrade","chzusdt@ticker"]},
+    {"coin":"ICP","symbol":"ICPUSDT","topics":["icpusdt@depth@100ms","icpusdt@aggTrade","icpusdt@ticker"]},
+    {"coin":"SUI","symbol":"SUIUSDT","topics":["suiusdt@depth@100ms","suiusdt@aggTrade","suiusdt@ticker"]},
+    {"coin":"APT","symbol":"APTUSDT","topics":["aptusdt@depth@100ms","aptusdt@aggTrade","aptusdt@ticker"]},
+    {"coin":"LDO","symbol":"LDOUSDT","topics":["ldousdt@depth@100ms","ldousdt@aggTrade","ldousdt@ticker"]},
+    {"coin":"WLD","symbol":"WLDUSDT","topics":["wldusdt@depth@100ms","wldusdt@aggTrade","wldusdt@ticker"]}
+    
     ]
 }
